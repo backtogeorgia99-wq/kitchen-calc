@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 
 let toastFn = null
 
@@ -22,26 +22,28 @@ export function Toast({ toast }) {
   if (!toast) return null
 
   const colors = {
-    success: { border: 'var(--green)', color: 'var(--green)' },
-    error: { border: 'var(--red)', color: 'var(--red)' },
-    info: { border: 'var(--accent)', color: 'var(--accent)' },
+    success: { bg: 'rgba(45,158,95,0.12)', border: 'rgba(45,158,95,0.3)', color: '#2d9e5f' },
+    error: { bg: 'rgba(220,68,68,0.12)', border: 'rgba(220,68,68,0.3)', color: '#dc4444' },
+    info: { bg: 'rgba(232,150,15,0.12)', border: 'rgba(232,150,15,0.3)', color: '#e8960f' },
   }
   const c = colors[toast.type] || colors.success
 
   return (
     <div style={{
-      position: 'fixed', bottom: 28, left: '50%',
+      position: 'fixed', bottom: 90, left: '50%',
       transform: 'translateX(-50%)',
-      background: 'var(--surface2)',
-      border: `1px solid ${c.border}`,
-      borderRadius: 'var(--radius)',
-      padding: '11px 22px',
+      background: c.bg,
+      border: `1.5px solid ${c.border}`,
+      borderRadius: 14,
+      padding: '12px 20px',
       color: c.color,
       fontSize: 13, fontWeight: 700,
       zIndex: 300, whiteSpace: 'nowrap',
-      boxShadow: 'var(--shadow)',
-      animation: 'fadeIn 0.25s ease',
+      animation: 'fadeUp 0.25s ease',
       maxWidth: 'calc(100vw - 48px)',
+      backdropFilter: 'blur(12px)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+      fontFamily: "'Noto Sans Georgian', sans-serif",
     }}>
       {toast.msg}
     </div>

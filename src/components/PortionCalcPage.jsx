@@ -4,16 +4,13 @@ import IngredientTable from './IngredientTable'
 import { showToast } from './Toast'
 
 const PORTION_UNITS = ['კგ', 'გ', 'ც', 'მლ', 'ლ']
+const empty = () => ({ name: '', qty: '', price: '' })
 
 function calcTotal(ingredients) {
   return ingredients.reduce((sum, r) => {
-    const qty = parseFloat(r.qty) || 0
-    const price = parseFloat(r.price) || 0
-    return sum + qty * price
+    return sum + (parseFloat(r.qty) || 0) * (parseFloat(r.price) || 0)
   }, 0)
 }
-
-const empty = () => ({ name: '', qty: '', price: '' })
 
 export default function PortionCalcPage({ user, theme }) {
   const [name, setName] = useState('')
@@ -32,19 +29,9 @@ export default function PortionCalcPage({ user, theme }) {
   const total = calcTotal(ingredients)
 
   useEffect(() => {
-    loadBulkCalcs()
-    supabase.from('categories').select('*').eq('type', 'portion').order('name')
-      .then(({ data }) => setCategories(data || []))
+    supabase.from('calculations').select('*').eq('type', 'bulk').order('created_at', { ascending: false }).then(({ data }) => setBulkList(data || []))
+    supabase.from('categories').select('*').eq('type', 'portion').order('name').then(({ data }) => setCategories(data || []))
   }, [])
-
-  const loadBulkCalcs = async () => {
-    const { data } = await supabase
-      .from('calculations')
-      .select('*')
-      .eq('type', 'bulk')
-      .order('created_at', { ascending: false })
-    setBulkList(data || [])
-  }
 
   const insertBulk = (bulk) => {
     const perServing = bulk.ingredients.map(ing => ({
@@ -52,10 +39,7 @@ export default function PortionCalcPage({ user, theme }) {
       qty: bulk.servings > 0 ? (ing.qty_kg / bulk.servings).toFixed(4) : ing.qty_kg,
       price: ing.price_per_kg,
     }))
-    setIngredients(prev => {
-      const filtered = prev.filter(r => r.name.trim())
-      return [...filtered, ...perServing]
-    })
+    setIngredients(prev => [...prev.filter(r => r.name.trim()), ...perServing])
     if (bulk.yield_amount && bulk.servings > 0) {
       setWeight((bulk.yield_amount / bulk.servings).toFixed(4))
       setWeightUnit(bulk.yield_unit || 'კგ')
@@ -75,7 +59,6 @@ export default function PortionCalcPage({ user, theme }) {
     if (!name.trim()) { showToast('სახელი სავალდებულოა', 'error'); return }
     const filled = ingredients.filter(r => r.name.trim())
     if (!filled.length) { showToast('დაამატეთ ინგრედიენტი', 'error'); return }
-
     setLoading(true)
     const rows = filled.map(r => ({
       name: r.name.trim(),
@@ -83,186 +66,97 @@ export default function PortionCalcPage({ user, theme }) {
       price_per_kg: parseFloat(r.price) || 0,
       cost: (parseFloat(r.qty) || 0) * (parseFloat(r.price) || 0),
     }))
-
-    const payload = {
-      type: 'portion',
-      name: name.trim(),
-      category,
-      servings: 1,
-      yield_amount: parseFloat(weight) || null,
-      yield_unit: weightUnit,
+    const { error } = await supabase.from('calculations').insert({
+      type: 'portion', name: name.trim(), category, servings: 1,
+      yield_amount: parseFloat(weight) || null, yield_unit: weightUnit,
       ingredients: rows,
       total_cost: parseFloat(total.toFixed(4)),
       cost_per_serving: parseFloat(total.toFixed(4)),
-      note: note.trim() || null,
-      created_by: user?.name,
-    }
-
-    const { error } = await supabase.from('calculations').insert(payload)
+      note: note.trim() || null, created_by: user?.name,
+    })
     setLoading(false)
     if (error) { showToast('შეცდომა: ' + error.message, 'error'); return }
     showToast('✅ წარმატებით შეინახა!')
     clear()
   }
 
-  const s = {
-    page: { padding: '14px 14px 48px', animation: 'fadeIn 0.2s ease' },
-    card: {
-      background: isDark ? '#181818' : '#ffffff',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 14, padding: '14px', marginBottom: 12,
-    },
-    cardTitle: {
-      fontSize: 13, fontWeight: 700,
-      color: '#4ab86a', marginBottom: 14,
-    },
-    row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 },
-    group: { display: 'flex', flexDirection: 'column', gap: 5 },
-    label: { fontSize: 11, color: isDark ? '#9e9080' : '#7a6a55', fontWeight: 600 },
-    input: {
-      padding: '10px 12px',
-      background: isDark ? '#202020' : '#f5f0e8',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 9, color: isDark ? '#f2ede6' : '#2a1f0f',
-      fontSize: 13, outline: 'none', width: '100%',
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-    },
-    select: {
-      padding: '10px 12px',
-      background: isDark ? '#202020' : '#f5f0e8',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 9, color: isDark ? '#f2ede6' : '#2a1f0f',
-      fontSize: 13, outline: 'none', width: '100%',
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-    },
-    textarea: {
-      padding: '10px 12px',
-      background: isDark ? '#202020' : '#f5f0e8',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 9, color: isDark ? '#f2ede6' : '#2a1f0f',
-      fontSize: 13, outline: 'none', resize: 'none',
-      height: 72, width: '100%',
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-    },
-    summaryBox: {
-      background: 'rgba(74,184,106,0.08)',
-      border: '1px solid rgba(74,184,106,0.22)',
-      borderRadius: 14, padding: '14px', marginBottom: 12,
-    },
-    summaryRow: {
-      display: 'flex', justifyContent: 'space-between',
-      alignItems: 'center', padding: '6px 0',
-      borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'}`,
-      fontSize: 13,
-    },
-    summaryLabel: { color: isDark ? '#9e9080' : '#7a6a55' },
-    summaryVal: { fontWeight: 700, color: '#4ab86a' },
-    summaryValBig: { fontWeight: 800, color: '#4ab86a', fontSize: 20 },
-    actionRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 },
-    btnSave: {
-      padding: '13px', background: '#4ab86a',
-      color: '#000', border: 'none', borderRadius: 14,
-      fontSize: 14, fontWeight: 700, cursor: 'pointer',
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-    },
-    btnClear: {
-      padding: '13px', background: 'transparent',
-      color: isDark ? '#9e9080' : '#7a6a55',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-    },
-    btnBulk: {
-      width: '100%', padding: '10px',
-      background: 'rgba(74,144,224,0.08)',
-      border: '1px solid rgba(74,144,224,0.3)',
-      borderRadius: 9, color: '#4a90e0',
-      fontSize: 12, fontWeight: 600, cursor: 'pointer',
-      marginBottom: 10,
-      fontFamily: "'Noto Sans Georgian', sans-serif",
-    },
-    modalOverlay: {
-      position: 'fixed', inset: 0, zIndex: 80,
-      background: 'rgba(0,0,0,0.7)',
-      display: 'flex', alignItems: 'flex-end',
-    },
-    modalSheet: {
-      background: isDark ? '#181818' : '#ffffff',
-      borderRadius: '14px 14px 0 0',
-      padding: '20px 16px 48px',
-      width: '100%', maxHeight: '70vh',
-      overflowY: 'auto',
-    },
-    modalTitle: {
-      fontSize: 15, fontWeight: 700,
-      color: isDark ? '#f2ede6' : '#2a1f0f',
-      marginBottom: 14,
-    },
-    bulkItem: {
-      padding: '12px',
-      background: isDark ? '#202020' : '#f5f0e8',
-      border: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
-      borderRadius: 9, marginBottom: 8,
-      cursor: 'pointer',
-    },
-    bulkItemName: {
-      fontSize: 14, fontWeight: 700,
-      color: isDark ? '#f2ede6' : '#2a1f0f',
-      marginBottom: 4,
-    },
-    bulkItemMeta: {
-      fontSize: 12,
-      color: isDark ? '#9e9080' : '#7a6a55',
-    },
+  const inp = {
+    padding: '12px 14px',
+    background: isDark ? '#242424' : '#f8f6f2',
+    border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+    borderRadius: 10, color: isDark ? '#f2ede6' : '#1a1410',
+    fontSize: 13, outline: 'none', width: '100%',
+    fontFamily: "'Noto Sans Georgian', sans-serif",
+    transition: 'border-color 0.2s',
+  }
+
+  const card = {
+    background: isDark ? '#1e1e1e' : '#ffffff',
+    borderRadius: 20,
+    boxShadow: isDark
+      ? '0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04)'
+      : '0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+    padding: '18px', marginBottom: 14,
+  }
+
+  const lbl = {
+    fontSize: 11, fontWeight: 700,
+    color: isDark ? '#5e5045' : '#b0a090',
+    marginBottom: 6, letterSpacing: '0.05em',
+    textTransform: 'uppercase', display: 'block',
   }
 
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <div style={s.cardTitle}>🍽️ 1 ულუფის კალკულაცია</div>
+    <div style={{ padding: '16px 16px 48px', animation: 'fadeUp 0.3s ease' }}>
 
-        <div style={{ marginBottom: 10 }}>
-          <div style={s.group}>
-            <label style={s.label}>კერძის სახელი *</label>
-            <input style={s.input} value={name} onChange={e => setName(e.target.value)} placeholder="მაგ: ხინკალი" />
-          </div>
+      <div style={card}>
+        <div style={{
+          fontSize: 13, fontWeight: 800,
+          color: '#2d9e5f', marginBottom: 16,
+          letterSpacing: '-0.01em',
+        }}>
+          🍽️ 1 ულუფის კალკულაცია
         </div>
 
-        <div style={s.row}>
-          <div style={s.group}>
-            <label style={s.label}>კატეგორია</label>
-            <select style={s.select} value={category} onChange={e => setCategory(e.target.value)}>
+        <div style={{ marginBottom: 12 }}>
+          <label style={lbl}>კერძის სახელი *</label>
+          <input style={inp} value={name} onChange={e => setName(e.target.value)}
+            placeholder="მაგ: ხინკალი"
+            onFocus={e => e.target.style.borderColor = '#2d9e5f'}
+            onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+          />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div>
+            <label style={lbl}>კატეგორია</label>
+            <select style={inp} value={category} onChange={e => setCategory(e.target.value)}>
               <option value="">-- აირჩიეთ --</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.name}>{c.name}</option>
-              ))}
+              {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
-          <div style={s.group}>
-            <label style={s.label}>
+          <div>
+            <label style={lbl}>
               ულუფის წონა {weightLocked && <span style={{ color: '#e8960f' }}>🔒</span>}
             </label>
             <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                style={{
-                  ...s.input,
-                  color: weightLocked ? '#e8960f' : (isDark ? '#f2ede6' : '#2a1f0f'),
-                  fontWeight: weightLocked ? 700 : 400,
-                  opacity: weightLocked ? 0.85 : 1,
-                }}
+              <input style={{
+                ...inp,
+                color: weightLocked ? '#e8960f' : (isDark ? '#f2ede6' : '#1a1410'),
+                fontWeight: weightLocked ? 700 : 400,
+                opacity: weightLocked ? 0.8 : 1,
+              }}
                 type="number" min="0" step="0.001"
                 value={weight}
                 onChange={e => !weightLocked && setWeight(e.target.value)}
-                placeholder="0.000"
-                readOnly={weightLocked}
+                placeholder="0.000" readOnly={weightLocked}
+                onFocus={e => !weightLocked && (e.target.style.borderColor = '#2d9e5f')}
+                onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
               />
-              <select
-                style={{ ...s.select, width: 70, flexShrink: 0, opacity: weightLocked ? 0.6 : 1 }}
+              <select style={{ ...inp, width: 66, flexShrink: 0 }}
                 value={weightUnit}
                 onChange={e => !weightLocked && setWeightUnit(e.target.value)}
-                disabled={weightLocked}
-              >
+                disabled={weightLocked}>
                 {PORTION_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
@@ -270,50 +164,122 @@ export default function PortionCalcPage({ user, theme }) {
         </div>
       </div>
 
-      <div style={s.card}>
-        <div style={s.cardTitle}>🥩 ინგრედიენტები (1 ულუფა)</div>
-        <button style={s.btnBulk} onClick={() => setShowBulkModal(true)}>
+      <div style={card}>
+        <div style={{
+          fontSize: 13, fontWeight: 800,
+          color: isDark ? '#f2ede6' : '#1a1410',
+          marginBottom: 12, letterSpacing: '-0.01em',
+        }}>
+          🥩 ინგრედიენტები <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 500 }}>1 ულუფა</span>
+        </div>
+        <button onClick={() => setShowBulkModal(true)} style={{
+          width: '100%', padding: '10px',
+          background: isDark ? 'rgba(45,111,224,0.08)' : 'rgba(45,111,224,0.06)',
+          border: `1.5px solid ${isDark ? 'rgba(45,111,224,0.25)' : 'rgba(45,111,224,0.2)'}`,
+          borderRadius: 10, color: '#2d6fe0',
+          fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          marginBottom: 12,
+          fontFamily: "'Noto Sans Georgian', sans-serif",
+          letterSpacing: '-0.01em',
+        }}>
           🧪 + ნახევრადფაბრიკატიდან ჩასმა
         </button>
         <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} />
       </div>
 
-      <div style={s.card}>
-        <div style={{ ...s.cardTitle, color: isDark ? '#9e9080' : '#7a6a55' }}>📝 შენიშვნა</div>
-        <textarea style={s.textarea} value={note} onChange={e => setNote(e.target.value)} placeholder="დამზადების წესი..." />
+      <div style={card}>
+        <label style={lbl}>📝 შენიშვნა</label>
+        <textarea style={{
+          ...inp, resize: 'none', height: 80,
+        }} value={note} onChange={e => setNote(e.target.value)}
+          placeholder="დამზადების წესი..."
+          onFocus={e => e.target.style.borderColor = '#2d9e5f'}
+          onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+        />
       </div>
 
-      <div style={s.summaryBox}>
-        <div style={s.summaryRow}>
-          <span style={s.summaryLabel}>ინგრედიენტების ღირებულება</span>
-          <span style={s.summaryVal}>₾ {total.toFixed(2)}</span>
-        </div>
-        <div style={{ ...s.summaryRow, borderBottom: 'none' }}>
-          <span style={s.summaryLabel}>1 ულუფის ღირებულება</span>
-          <span style={s.summaryValBig}>₾ {total.toFixed(2)}</span>
+      {/* SUMMARY */}
+      <div style={{
+        background: isDark
+          ? 'linear-gradient(135deg, #141e14 0%, #1e1e1e 100%)'
+          : 'linear-gradient(135deg, #f0faf4 0%, #ffffff 100%)',
+        borderRadius: 20,
+        border: `1.5px solid ${isDark ? 'rgba(45,158,95,0.2)' : 'rgba(45,158,95,0.25)'}`,
+        padding: '16px 18px', marginBottom: 14,
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{
+            background: isDark ? 'rgba(45,158,95,0.08)' : 'rgba(45,158,95,0.06)',
+            borderRadius: 12, padding: '12px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ინგრედიენტები</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#2d9e5f' }}>₾ {total.toFixed(2)}</div>
+          </div>
+          <div style={{
+            background: isDark ? 'rgba(45,158,95,0.08)' : 'rgba(45,158,95,0.06)',
+            borderRadius: 12, padding: '12px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>1 ულუფა</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#2d9e5f' }}>₾ {total.toFixed(2)}</div>
+          </div>
         </div>
       </div>
 
-      <div style={s.actionRow}>
-        <button style={s.btnClear} onClick={clear}>🗑️ გასუფთავება</button>
-        <button style={s.btnSave} onClick={save} disabled={loading}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
+        <button onClick={clear} style={{
+          padding: '14px',
+          background: isDark ? '#242424' : '#f8f6f2',
+          color: isDark ? '#9e9080' : '#7a6a55',
+          border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+          borderRadius: 14, fontSize: 13, fontWeight: 700,
+          cursor: 'pointer',
+          fontFamily: "'Noto Sans Georgian', sans-serif",
+        }}>🗑️ გასუფთავება</button>
+        <button onClick={save} disabled={loading} style={{
+          padding: '14px',
+          background: '#2d9e5f', color: '#fff',
+          border: 'none', borderRadius: 14,
+          fontSize: 14, fontWeight: 800, cursor: 'pointer',
+          fontFamily: "'Noto Sans Georgian', sans-serif",
+          letterSpacing: '-0.01em',
+          boxShadow: '0 4px 16px rgba(45,158,95,0.35)',
+        }}>
           {loading ? '...' : '💾 შენახვა'}
         </button>
       </div>
 
       {showBulkModal && (
-        <div style={s.modalOverlay} onClick={e => e.target === e.currentTarget && setShowBulkModal(false)}>
-          <div style={s.modalSheet}>
-            <div style={{ width: 40, height: 4, background: '#3a3a3a', borderRadius: 2, margin: '0 auto 16px' }} />
-            <div style={s.modalTitle}>🧪 ნახევრადფაბრიკატის არჩევა</div>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 80,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'flex-end',
+          backdropFilter: 'blur(4px)',
+        }} onClick={e => e.target === e.currentTarget && setShowBulkModal(false)}>
+          <div style={{
+            background: isDark ? '#1e1e1e' : '#ffffff',
+            borderRadius: '24px 24px 0 0',
+            padding: '20px 16px 48px',
+            width: '100%', maxHeight: '72vh',
+            overflowY: 'auto',
+            animation: 'slideUp 0.3s cubic-bezier(0.32,0.72,0,1)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{ width: 36, height: 4, background: isDark ? '#2a2a2a' : '#ede8e0', borderRadius: 2, margin: '0 auto 18px' }} />
+            <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f2ede6' : '#1a1410', marginBottom: 14, letterSpacing: '-0.02em' }}>
+              🧪 ნახევრადფაბრიკატის არჩევა
+            </div>
             {bulkList.length === 0 ? (
-              <div style={{ textAlign: 'center', color: isDark ? '#5e5045' : '#a09080', padding: 24 }}>
-                ნახევრადფაბრიკატი არ მოიძებნა
-              </div>
+              <div style={{ textAlign: 'center', color: isDark ? '#5e5045' : '#b0a090', padding: 32 }}>ნახევრადფაბრიკატი არ მოიძებნა</div>
             ) : bulkList.map(b => (
-              <div key={b.id} style={s.bulkItem} onClick={() => insertBulk(b)}>
-                <div style={s.bulkItemName}>{b.name}</div>
-                <div style={s.bulkItemMeta}>
+              <div key={b.id} onClick={() => insertBulk(b)} style={{
+                padding: '14px 16px',
+                background: isDark ? '#242424' : '#f8f6f2',
+                border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+                borderRadius: 14, marginBottom: 8, cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f2ede6' : '#1a1410', marginBottom: 4 }}>{b.name}</div>
+                <div style={{ fontSize: 12, color: isDark ? '#9e9080' : '#7a6a55' }}>
                   {b.servings} ულუფა · ₾{parseFloat(b.cost_per_serving || 0).toFixed(2)}/ულუფა
                 </div>
               </div>

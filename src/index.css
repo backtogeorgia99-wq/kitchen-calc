@@ -6,58 +6,80 @@
 }
 
 :root {
-  --bg: #0d0d0d;
-  --surface: #181818;
-  --surface2: #202020;
-  --surface3: #282828;
-  --border: #2e2e2e;
-  --border2: #3a3a3a;
+  --bg: #f8f6f2;
+  --bg2: #f0ede7;
+  --surface: #ffffff;
+  --surface2: #f8f6f2;
+  --border: #ede8e0;
+  --border2: #e0d8cc;
   --accent: #e8960f;
-  --accent-dim: rgba(232,150,15,0.12);
-  --accent-dark: #b86e08;
+  --accent2: #d4840a;
+  --accent-dim: rgba(232,150,15,0.10);
+  --text: #1a1410;
+  --text2: #7a6a55;
+  --text3: #b0a090;
+  --green: #2d9e5f;
+  --green-dim: rgba(45,158,95,0.10);
+  --blue: #2d6fe0;
+  --blue-dim: rgba(45,111,224,0.10);
+  --red: #dc4444;
+  --red-dim: rgba(220,68,68,0.10);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+[data-theme="dark"] {
+  --bg: #111111;
+  --bg2: #161616;
+  --surface: #1e1e1e;
+  --surface2: #242424;
+  --border: #2a2a2a;
+  --border2: #333333;
   --text: #f2ede6;
   --text2: #9e9080;
   --text3: #5e5045;
-  --green: #4ab86a;
-  --green-dim: rgba(74,184,106,0.12);
-  --red: #e05050;
-  --red-dim: rgba(224,80,80,0.12);
-  --blue: #4a90e0;
-  --blue-dim: rgba(74,144,224,0.12);
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Noto Sans Georgian', sans-serif;
+  font-family: 'Noto Sans Georgian', -apple-system, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   height: 100%;
   max-width: 480px;
   margin: 0 auto;
-  position: relative;
   display: flex;
   flex-direction: column;
 }
 
-button { font-family: inherit; }
-input, select, textarea { font-family: inherit; }
+input, select, textarea, button {
+  font-family: inherit;
+}
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes spin {
@@ -71,5 +93,5 @@ input, select, textarea { font-family: inherit; }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  50% { opacity: 0.4; }
 }
