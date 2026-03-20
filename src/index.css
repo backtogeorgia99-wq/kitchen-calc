@@ -1,0 +1,75 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #181818;
+  --surface2: #202020;
+  --surface3: #282828;
+  --border: #2e2e2e;
+  --border2: #3a3a3a;
+  --accent: #e8960f;
+  --accent-dim: rgba(232,150,15,0.12);
+  --accent-dark: #b86e08;
+  --text: #f2ede6;
+  --text2: #9e9080;
+  --text3: #5e5045;
+  --green: #4ab86a;
+  --green-dim: rgba(74,184,106,0.12);
+  --red: #e05050;
+  --red-dim: rgba(224,80,80,0.12);
+  --blue: #4a90e0;
+  --blue-dim: rgba(74,144,224,0.12);
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans Georgian', sans-serif;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
