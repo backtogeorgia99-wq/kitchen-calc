@@ -26,11 +26,16 @@ export default function PortionCalcPage({ user, theme }) {
   const [loading, setLoading] = useState(false)
   const [bulkList, setBulkList] = useState([])
   const [showBulkModal, setShowBulkModal] = useState(false)
+  const [categories, setCategories] = useState([])
 
   const isDark = theme === 'dark'
   const total = calcTotal(ingredients)
 
-  useEffect(() => { loadBulkCalcs() }, [])
+  useEffect(() => {
+    loadBulkCalcs()
+    supabase.from('categories').select('*').eq('type', 'portion').order('name')
+      .then(({ data }) => setCategories(data || []))
+  }, [])
 
   const loadBulkCalcs = async () => {
     const { data } = await supabase
@@ -227,7 +232,12 @@ export default function PortionCalcPage({ user, theme }) {
         <div style={s.row}>
           <div style={s.group}>
             <label style={s.label}>კატეგორია</label>
-            <input style={s.input} value={category} onChange={e => setCategory(e.target.value)} placeholder="მაგ: მეორე კერძი" />
+            <select style={s.select} value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="">-- აირჩიეთ --</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
           </div>
           <div style={s.group}>
             <label style={s.label}>

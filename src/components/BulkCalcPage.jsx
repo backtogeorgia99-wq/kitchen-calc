@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import IngredientTable from './IngredientTable'
 import { showToast } from './Toast'
@@ -19,18 +19,24 @@ export default function BulkCalcPage({ user, theme }) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
   const [servings, setServings] = useState('')
+  const [portionWeight, setPortionWeight] = useState('')
   const [yieldAmt, setYieldAmt] = useState('')
   const [yieldUnit, setYieldUnit] = useState('კგ')
   const [ingredients, setIngredients] = useState([empty()])
   const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState([])
 
   const total = calcTotal(ingredients)
   const srv = parseFloat(servings) || 0
   const yld = parseFloat(yieldAmt) || 0
   const perServing = srv > 0 ? total / srv : 0
   const perUnit = yld > 0 ? total / yld : 0
-
   const isDark = theme === 'dark'
+
+  useEffect(() => {
+    supabase.from('categories').select('*').eq('type', 'bulk').order('name')
+      .then(({ data }) => setCategories(data || []))
+  }, [])
 
   const s = {
     page: { padding: '14px 14px 48px', animation: 'fadeIn 0.2s ease' },
@@ -44,7 +50,6 @@ export default function BulkCalcPage({ user, theme }) {
       color: '#e8960f', marginBottom: 14,
     },
     row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 },
-    row3: { display: 'grid', gridTemplateColumns: '1fr 1fr 80px', gap: 10, marginBottom: 10 },
     group: { display: 'flex', flexDirection: 'column', gap: 5 },
     label: { fontSize: 11, color: isDark ? '#9e9080' : '#7a6a55', fontWeight: 600 },
     input: {
@@ -95,7 +100,8 @@ export default function BulkCalcPage({ user, theme }) {
   }
 
   const clear = () => {
-    setName(''); setCategory(''); setServings(''); setYieldAmt('')
+    setName(''); setCategory(''); setServings('')
+    setPortionWeight(''); setYieldAmt('')
     setYieldUnit('კგ'); setIngredients([empty()])
   }
 
@@ -142,38 +148,82 @@ export default function BulkCalcPage({ user, theme }) {
         <div style={{ marginBottom: 10 }}>
           <div style={s.group}>
             <label style={s.label}>სახელი *</label>
-            <input style={s.input} value={name} onChange={e => setName(e.target.value)} placeholder="მაგ: ქათმის ბულიონი 50 ულუფაზე" />
+            <input
+              style={s.input}
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="მაგ: ქათმის ბულიონი"
+            />
           </div>
         </div>
 
         <div style={s.row}>
           <div style={s.group}>
             <label style={s.label}>კატეგორია</label>
-            <input style={s.input} value={category} onChange={e => setCategory(e.target.value)} placeholder="მაგ: სოუსი" />
-          </div>
-          <div style={s.group}>
-            <label style={s.label}>ულუფების რაოდ. *</label>
-            <input style={s.input} type="number" min="1" value={servings} onChange={e => setServings(e.target.value)} placeholder="მაგ: 50" />
-          </div>
-        </div>
-
-        <div style={s.row3}>
-          <div style={s.group}>
-            <label style={s.label}>გამოსავლიანობა</label>
-            <input style={s.input} type="number" min="0" step="0.001" value={yieldAmt} onChange={e => setYieldAmt(e.target.value)} placeholder="0.000" />
-          </div>
-          <div style={s.group}>
-            <label style={s.label}>ერთეული</label>
-            <select style={s.select} value={yieldUnit} onChange={e => setYieldUnit(e.target.value)}>
-              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+            <select style={s.select} value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="">-- აირჩიეთ --</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
             </select>
           </div>
           <div style={s.group}>
-            <label style={s.label}>1 ულუფა</label>
+            <label style={s.label}>ულუფების რაოდ.</label>
             <input
-              style={{ ...s.input, color: '#e8960f', fontWeight: 700 }}
-              readOnly
-              value={srv > 0 && yld > 0 ? `${(yld / srv).toFixed(3)}${yieldUnit}` : '—'}
+              style={{ ...s.input, color: servings ? '#e8960f' : (isDark ? '#f2ede6' : '#2a1f0f'), fontWeight: servings ? 700 : 400 }}
+              type="number" min="1"
+              value={servings}
+              onChange={e => {
+                setServings(e.target.value)
+                const sv = parseFloat(e.target.value)
+                const ya = parseFloat(yieldAmt)
+                if (sv > 0 && ya > 0) setPortionWeight((ya / sv).toFixed(3))
+              }}
+              placeholder="ავტომატური"
+            />
+          </div>
+        </div>
+
+        <div style={s.row}>
+          <div style={s.group}>
+            <label style={s.label}>გამოსავლიანობა</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                style={s.input}
+                type="number" min="0" step="0.001"
+                value={yieldAmt}
+                onChange={e => {
+                  setYieldAmt(e.target.value)
+                  const ya = parseFloat(e.target.value)
+                  const pw = parseFloat(portionWeight)
+                  const sv = parseFloat(servings)
+                  if (ya > 0 && pw > 0) setServings(String(Math.round(ya / pw)))
+                  else if (ya > 0 && sv > 0) setPortionWeight((ya / sv).toFixed(3))
+                }}
+                placeholder="0.000"
+              />
+              <select
+                style={{ ...s.select, width: 70, flexShrink: 0 }}
+                value={yieldUnit}
+                onChange={e => setYieldUnit(e.target.value)}
+              >
+                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={s.group}>
+            <label style={s.label}>1 ულუფის წონა</label>
+            <input
+              style={{ ...s.input, color: portionWeight ? '#e8960f' : (isDark ? '#f2ede6' : '#2a1f0f'), fontWeight: portionWeight ? 700 : 400 }}
+              type="number" min="0" step="0.001"
+              value={portionWeight}
+              onChange={e => {
+                setPortionWeight(e.target.value)
+                const pw = parseFloat(e.target.value)
+                const ya = parseFloat(yieldAmt)
+                if (pw > 0 && ya > 0) setServings(String(Math.round(ya / pw)))
+              }}
+              placeholder="0.000"
             />
           </div>
         </div>

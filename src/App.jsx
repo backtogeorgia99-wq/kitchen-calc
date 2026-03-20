@@ -4,12 +4,14 @@ import LoginPage from './components/LoginPage'
 import BulkCalcPage from './components/BulkCalcPage'
 import PortionCalcPage from './components/PortionCalcPage'
 import ListPage from './components/ListPage'
+import CategoriesPage from './components/CategoriesPage'
 import { Toast, useToast } from './components/Toast'
 
 const TABS = [
   { key: 'bulk', icon: '🧪', label: 'ნ/ფაბრიკატი' },
   { key: 'portion', icon: '🍽️', label: '1 ულუფა' },
   { key: 'list', icon: '📋', label: 'სია' },
+  { key: 'categories', icon: '🗂️', label: 'კატეგ.' },
 ]
 
 const ROLE_LABELS = {
@@ -70,21 +72,6 @@ export default function App() {
       fontSize: 10, marginTop: 2,
       color: isDark ? '#5e5045' : '#a09080',
     },
-    userBadge: {
-      fontSize: 11, fontWeight: 600,
-      color: isDark ? '#9e9080' : '#7a6a55',
-      display: 'flex', alignItems: 'center', gap: 8,
-    },
-    themeBtn: {
-      background: 'none', border: 'none',
-      fontSize: 18, cursor: 'pointer', padding: 4,
-    },
-    logoutBtn: {
-      background: 'none', border: 'none',
-      fontSize: 11, cursor: 'pointer', padding: '4px 8px',
-      color: isDark ? '#5e5045' : '#a09080',
-      borderRadius: 6,
-    },
     navBar: {
       display: 'flex',
       borderBottom: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
@@ -95,7 +82,7 @@ export default function App() {
       flex: 1, padding: '10px 4px',
       background: 'none', border: 'none',
       color: isDark ? '#5e5045' : '#a09080',
-      cursor: 'pointer', fontSize: 11, fontWeight: 600,
+      cursor: 'pointer', fontSize: 10, fontWeight: 600,
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', gap: 3,
       borderBottom: '2px solid transparent',
@@ -118,13 +105,23 @@ export default function App() {
           <div style={s.headerSub}>შეფ-მზარეული: მეგი ბერიძე</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={s.userBadge}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: isDark ? '#9e9080' : '#7a6a55' }}>
             {ROLE_LABELS[user.role]}
           </div>
-          <button style={s.themeBtn} onClick={toggleTheme}>
+          <button
+            style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', padding: 4 }}
+            onClick={toggleTheme}
+          >
             {isDark ? '☀️' : '🌙'}
           </button>
-          <button style={s.logoutBtn} onClick={logout}>
+          <button
+            style={{
+              background: 'none', border: 'none',
+              fontSize: 11, cursor: 'pointer', padding: '4px 8px',
+              color: isDark ? '#5e5045' : '#a09080',
+            }}
+            onClick={logout}
+          >
             გასვლა
           </button>
         </div>
@@ -147,6 +144,7 @@ export default function App() {
         {tab === 'bulk' && <BulkCalcPage user={user} theme={theme} />}
         {tab === 'portion' && <PortionCalcPage user={user} theme={theme} />}
         {tab === 'list' && <ListPage user={user} theme={theme} />}
+        {tab === 'categories' && <CategoriesPage user={user} theme={theme} />}
       </div>
 
       <Toast toast={toast} />
