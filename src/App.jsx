@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getCurrentUser, logoutUser } from './lib/supabase'
+import LoginPage from './components/LoginPage'
 import BulkCalcPage from './components/BulkCalcPage'
 import PortionCalcPage from './components/PortionCalcPage'
 import ListPage from './components/ListPage'
@@ -10,74 +12,121 @@ const TABS = [
   { key: 'list', icon: '📋', label: 'სია' },
 ]
 
-const s = {
-  app: {
-    display: 'flex', flexDirection: 'column',
-    height: '100dvh', background: 'var(--bg)',
-    maxWidth: 480, margin: '0 auto',
-  },
-  header: {
-    padding: '14px 16px 12px',
-    borderBottom: '1px solid var(--border)',
-    background: 'var(--bg)',
-    display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between',
-    flexShrink: 0,
-  },
-  headerLeft: {},
-  headerTitle: {
-    fontSize: 17, fontWeight: 800,
-    color: 'var(--accent)',
-    letterSpacing: '-0.01em',
-  },
-  headerSub: {
-    fontSize: 10, color: 'var(--text3)', marginTop: 1,
-    display: 'flex', alignItems: 'center', gap: 5,
-  },
-  dot: {
-    width: 6, height: 6, borderRadius: '50%',
-    background: 'var(--green)',
-    animation: 'pulse 2.2s ease-in-out infinite',
-    display: 'inline-block',
-  },
-  navBar: {
-    display: 'flex',
-    borderBottom: '1px solid var(--border)',
-    background: 'var(--surface)',
-    flexShrink: 0,
-  },
-  navTab: {
-    flex: 1, padding: '10px 4px',
-    background: 'none', border: 'none',
-    color: 'var(--text3)', cursor: 'pointer',
-    fontSize: 11, fontWeight: 600,
-    display: 'flex', flexDirection: 'column',
-    alignItems: 'center', gap: 3,
-    borderBottom: '2px solid transparent',
-    transition: 'all 0.18s',
-  },
-  navTabActive: {
-    color: 'var(--accent)',
-    borderBottomColor: 'var(--accent)',
-    background: 'rgba(232,150,15,0.04)',
-  },
-  tabIcon: { fontSize: 19 },
-  content: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
+const ROLE_LABELS = {
+  admin: '🔑 ადმინი',
+  chef: '👨‍🍳 შეფი',
+  cook: '👤 მზარეული',
 }
 
 export default function App() {
   const [tab, setTab] = useState('bulk')
+  const [user, setUser] = useState(null)
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
   const { toast } = useToast()
+
+  useEffect(() => {
+    const u = getCurrentUser()
+    if (u) setUser(u)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme)
+    document.body.style.background = theme === 'dark' ? '#0d0d0d' : '#f5f0e8'
+  }, [theme])
+
+  const logout = () => {
+    logoutUser()
+    setUser(null)
+  }
+
+  const toggleTheme = () => {
+    setTheme(t => t === 'dark' ? 'light' : 'dark')
+  }
+
+  if (!user) return <LoginPage onLogin={setUser} theme={theme} />
+
+  const isDark = theme === 'dark'
+
+  const s = {
+    app: {
+      display: 'flex', flexDirection: 'column',
+      height: '100dvh',
+      background: isDark ? '#0d0d0d' : '#f5f0e8',
+      maxWidth: 480, margin: '0 auto',
+    },
+    header: {
+      padding: '12px 16px',
+      borderBottom: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
+      background: isDark ? '#0d0d0d' : '#ffffff',
+      display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between',
+      flexShrink: 0,
+    },
+    headerTitle: {
+      fontSize: 16, fontWeight: 800,
+      color: '#e8960f',
+    },
+    headerSub: {
+      fontSize: 10, marginTop: 2,
+      color: isDark ? '#5e5045' : '#a09080',
+    },
+    userBadge: {
+      fontSize: 11, fontWeight: 600,
+      color: isDark ? '#9e9080' : '#7a6a55',
+      display: 'flex', alignItems: 'center', gap: 8,
+    },
+    themeBtn: {
+      background: 'none', border: 'none',
+      fontSize: 18, cursor: 'pointer', padding: 4,
+    },
+    logoutBtn: {
+      background: 'none', border: 'none',
+      fontSize: 11, cursor: 'pointer', padding: '4px 8px',
+      color: isDark ? '#5e5045' : '#a09080',
+      borderRadius: 6,
+    },
+    navBar: {
+      display: 'flex',
+      borderBottom: `1px solid ${isDark ? '#2e2e2e' : '#e0d8cc'}`,
+      background: isDark ? '#181818' : '#ffffff',
+      flexShrink: 0,
+    },
+    navTab: {
+      flex: 1, padding: '10px 4px',
+      background: 'none', border: 'none',
+      color: isDark ? '#5e5045' : '#a09080',
+      cursor: 'pointer', fontSize: 11, fontWeight: 600,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: 3,
+      borderBottom: '2px solid transparent',
+      transition: 'all 0.18s',
+      fontFamily: "'Noto Sans Georgian', sans-serif",
+    },
+    navTabActive: {
+      color: '#e8960f',
+      borderBottomColor: '#e8960f',
+      background: 'rgba(232,150,15,0.04)',
+    },
+    content: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
+  }
 
   return (
     <div style={s.app}>
       <header style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.headerTitle}>🍳 კალკულაცია</div>
-          <div style={s.headerSub}>
-            <span style={s.dot} />
-            Supabase-თან დაკავშირებულია
+        <div>
+          <div style={s.headerTitle}>🍳 რესტორანი "ტიფლისი"</div>
+          <div style={s.headerSub}>შეფ-მზარეული: მეგი ბერიძე</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={s.userBadge}>
+            {ROLE_LABELS[user.role]}
           </div>
+          <button style={s.themeBtn} onClick={toggleTheme}>
+            {isDark ? '☀️' : '🌙'}
+          </button>
+          <button style={s.logoutBtn} onClick={logout}>
+            გასვლა
+          </button>
         </div>
       </header>
 
@@ -88,16 +137,16 @@ export default function App() {
             style={{ ...s.navTab, ...(tab === t.key ? s.navTabActive : {}) }}
             onClick={() => setTab(t.key)}
           >
-            <span style={s.tabIcon}>{t.icon}</span>
+            <span style={{ fontSize: 19 }}>{t.icon}</span>
             {t.label}
           </button>
         ))}
       </nav>
 
       <div style={s.content}>
-        {tab === 'bulk' && <BulkCalcPage />}
-        {tab === 'portion' && <PortionCalcPage />}
-        {tab === 'list' && <ListPage />}
+        {tab === 'bulk' && <BulkCalcPage user={user} theme={theme} />}
+        {tab === 'portion' && <PortionCalcPage user={user} theme={theme} />}
+        {tab === 'list' && <ListPage user={user} theme={theme} />}
       </div>
 
       <Toast toast={toast} />
