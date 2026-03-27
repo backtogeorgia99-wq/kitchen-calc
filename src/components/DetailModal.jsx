@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { supabase, canEdit } from '../lib/supabase'
+import { useAppSettings, formatMoney, displaySellingPrice } from '../lib/formatMoney'
+import { logAudit } from '../lib/auditLog'
 import IngredientTable from './IngredientTable'
 import { showToast } from './Toast'
+import BulkFabLogo from './BulkFabLogo'
 
-export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
+export default function DetailModal({ calc, user, theme, onClose, onDelete, onChanged }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(calc.name)
   const [category, setCategory] = useState(calc.category || '')
   const [note, setNote] = useState(calc.note || '')
   const [ingredients, setIngredients] = useState(
-    calc.ingredients.map(i => ({ name: i.name, qty: i.qty_kg, price: i.price_per_kg }))
+    (calc.ingredients || []).map(i => ({ name: i.name, qty: i.qty_kg, price: i.price_per_kg }))
   )
   const [loading, setLoading] = useState(false)
+  const [dupLoading, setDupLoading] = useState(false)
+  const settings = useAppSettings()
 
   const isDark = theme === 'dark'
   const isBulk = calc.type === 'bulk'
@@ -54,8 +59,38 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
     }).eq('id', calc.id)
     setLoading(false)
     if (error) { showToast('შეცდომა: ' + error.message, 'error'); return }
+    await logAudit(user, 'update', 'calculation', calc.id, { name: name.trim() })
     showToast('✅ განახლდა!')
     setEditing(false)
+    onChanged?.()
+    onClose()
+  }
+
+  const duplicate = async () => {
+    const def = `${calc.name} (ასლი)`
+    const baseName = window.prompt('დუბლიკატის სახელი:', def)
+    if (baseName == null || !String(baseName).trim()) return
+    setDupLoading(true)
+    const { data, error } = await supabase.from('calculations').insert({
+      type: calc.type,
+      name: String(baseName).trim(),
+      category: calc.category || null,
+      servings: calc.servings ?? 1,
+      yield_amount: calc.yield_amount ?? null,
+      yield_unit: calc.yield_unit || 'გ',
+      ingredients: calc.ingredients || [],
+      total_cost: calc.total_cost ?? null,
+      cost_per_serving: calc.cost_per_serving ?? null,
+      cost_per_unit: calc.cost_per_unit ?? null,
+      note: calc.note || null,
+      created_by: user?.email || user?.name || null,
+      settings: calc.settings && typeof calc.settings === 'object' ? calc.settings : {},
+    }).select('id').single()
+    setDupLoading(false)
+    if (error) { showToast('შეცდომა: ' + error.message, 'error'); return }
+    await logAudit(user, 'duplicate', 'calculation', data?.id, { from_id: calc.id, name: String(baseName).trim() })
+    showToast('✅ დუბლიკატი შეიქმნა')
+    onChanged?.()
     onClose()
   }
 
@@ -98,7 +133,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
             <input style={inp} value={category} onChange={e => setCategory(e.target.value)} />
 
             <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? '#5e5045' : '#b0a090', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ინგრედიენტები</div>
-            <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} />
+            <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} user={user} />
 
             {!isBulk && (
               <>
@@ -115,7 +150,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
               alignItems: 'center', marginTop: 6, marginBottom: 16,
             }}>
               <span style={{ color: isDark ? '#9e9080' : '#7a6a55', fontSize: 13 }}>ახალი ჯამი</span>
-              <span style={{ color: accentColor, fontSize: 20, fontWeight: 800 }}>₾ {total.toFixed(2)}</span>
+              <span style={{ color: accentColor, fontSize: 20, fontWeight: 800 }}>{formatMoney(total, settings)}</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -145,15 +180,16 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
             {/* BADGE */}
             <div style={{ marginBottom: 12 }}>
               <span style={{
-                fontSize: 11, padding: '4px 12px',
+                fontSize: 11, padding: '6px 12px 6px 8px',
                 borderRadius: 20, fontWeight: 700,
                 background: isBulk
                   ? (isDark ? 'rgba(45,111,224,0.15)' : 'rgba(45,111,224,0.1)')
                   : (isDark ? 'rgba(45,158,95,0.15)' : 'rgba(45,158,95,0.1)'),
                 color: isBulk ? '#2d6fe0' : '#2d9e5f',
                 border: `1px solid ${isBulk ? 'rgba(45,111,224,0.25)' : 'rgba(45,158,95,0.25)'}`,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-                {isBulk ? '🧪 ნახევრადფაბრიკატი' : '🍽️ 1 ულუფა'}
+                {isBulk ? <><BulkFabLogo size={22} /> ნახევრადფაბრიკატი</> : '🍽️ 1 ულუფა'}
               </span>
             </div>
 
@@ -188,7 +224,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
                     border: `1px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
                   }}>
                     <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>1 ულუფა</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: accentColor }}>₾ {parseFloat(calc.cost_per_serving || 0).toFixed(2)}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: accentColor }}>{formatMoney(calc.cost_per_serving || 0, settings)}</div>
                   </div>
                 </>
               )}
@@ -223,14 +259,14 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between',
                   alignItems: 'center', padding: '10px 14px',
-                  borderBottom: i < calc.ingredients.length - 1
+                  borderBottom: i < (calc.ingredients || []).length - 1
                     ? `1px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`
                     : 'none',
                 }}>
                   <span style={{ fontSize: 13, color: isDark ? '#f2ede6' : '#1a1410', fontWeight: 500 }}>{ing.name}</span>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090' }}>{ing.qty_kg}კგ · ₾{ing.price_per_kg}/კგ</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: accentColor }}>₾{parseFloat(ing.cost).toFixed(2)}</span>
+                    <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090' }}>{ing.qty_kg}კგ · {formatMoney(ing.price_per_kg, settings)}/კგ</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: accentColor }}>{formatMoney(ing.cost, settings)}</span>
                   </div>
                 </div>
               ))}
@@ -248,9 +284,21 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
             }}>
               <span style={{ color: isDark ? '#9e9080' : '#7a6a55', fontSize: 13, fontWeight: 600 }}>სულ ღირებულება</span>
               <span style={{ color: accentColor, fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em' }}>
-                ₾ {parseFloat(calc.total_cost || 0).toFixed(2)}
+                {formatMoney(calc.total_cost || 0, settings)}
               </span>
             </div>
+
+            {(settings.markupPercent > 0 || settings.vatPercent > 0) && (
+              <div style={{
+                fontSize: 12,
+                color: isDark ? '#9e9080' : '#7a6a55',
+                marginBottom: 14,
+                textAlign: 'right',
+              }}>
+                სავარაუდო გასაყიდი (მარჟა + დღგ):{' '}
+                <strong style={{ color: accentColor }}>{formatMoney(displaySellingPrice(calc.total_cost, settings), settings)}</strong>
+              </div>
+            )}
 
             {calc.note && (
               <>
@@ -261,17 +309,37 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
 
             {/* ACTIONS */}
             {canEdit(user) && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                <button onClick={() => setEditing(true)} style={{
-                  padding: 13, background: isDark ? '#242424' : '#f8f6f2',
-                  color: '#e8960f',
-                  border: `1.5px solid ${isDark ? 'rgba(232,150,15,0.3)' : 'rgba(232,150,15,0.25)'}`,
-                  borderRadius: 14, fontSize: 13, fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: "'Noto Sans Georgian', sans-serif",
-                }}>✏️ რედაქტირება</button>
-                <button onClick={onClose} style={{
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                  <button type="button" onClick={() => setEditing(true)} style={{
+                    padding: 13, background: isDark ? '#242424' : '#f8f6f2',
+                    color: '#e8960f',
+                    border: `1.5px solid ${isDark ? 'rgba(232,150,15,0.3)' : 'rgba(232,150,15,0.25)'}`,
+                    borderRadius: 14, fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: "'Noto Sans Georgian', sans-serif",
+                  }}>✏️ რედაქტირება</button>
+                  <button
+                    type="button"
+                    disabled={dupLoading}
+                    onClick={duplicate}
+                    style={{
+                      padding: 13,
+                      background: isDark ? 'rgba(45,111,224,0.12)' : 'rgba(45,111,224,0.08)',
+                      color: '#2d6fe0',
+                      border: '1.5px solid rgba(45,111,224,0.3)',
+                      borderRadius: 14, fontSize: 13, fontWeight: 700,
+                      cursor: dupLoading ? 'wait' : 'pointer',
+                      fontFamily: "'Noto Sans Georgian', sans-serif",
+                    }}
+                  >
+                    {dupLoading ? '...' : '📋 დუბლიკატი'}
+                  </button>
+                </div>
+                <button type="button" onClick={onClose} style={{
+                  width: '100%',
                   padding: 13,
+                  marginBottom: 10,
                   background: isDark ? '#242424' : '#f8f6f2',
                   color: isDark ? '#9e9080' : '#7a6a55',
                   border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
@@ -279,7 +347,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete }) {
                   cursor: 'pointer',
                   fontFamily: "'Noto Sans Georgian', sans-serif",
                 }}>დახურვა</button>
-              </div>
+              </>
             )}
 
             {canEdit(user) && onDelete && (

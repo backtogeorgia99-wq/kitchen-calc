@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import IngredientTable from './IngredientTable'
+import BulkFabLogo from './BulkFabLogo'
 import { showToast } from './Toast'
 
 const UNITS = ['კგ', 'გ', 'ც', 'მლ', 'ლ']
@@ -88,17 +90,18 @@ export default function BulkCalcPage({ user, theme }) {
       cost: (parseFloat(r.qty) || 0) * (parseFloat(r.price) || 0),
     }))
 
-    const { error } = await supabase.from('calculations').insert({
+    const { data: created, error } = await supabase.from('calculations').insert({
       type: 'bulk', name: name.trim(), category,
       servings: srv, yield_amount: yld || null, yield_unit: yieldUnit,
       ingredients: rows,
       total_cost: parseFloat(total.toFixed(4)),
       cost_per_serving: parseFloat(perServing.toFixed(4)),
       cost_per_unit: yld > 0 ? parseFloat(perUnit.toFixed(6)) : null,
-      created_by: user?.name,
-    })
+      created_by: user?.email || user?.name,
+    }).select('id').single()
     setLoading(false)
     if (error) { showToast('შეცდომა: ' + error.message, 'error'); return }
+    await logAudit(user, 'create', 'calculation', created?.id, { name: name.trim(), type: 'bulk' })
     showToast('✅ წარმატებით შეინახა!')
     clear()
   }
@@ -110,10 +113,11 @@ export default function BulkCalcPage({ user, theme }) {
         <div style={{
           fontSize: 13, fontWeight: 800,
           color: '#e8960f', marginBottom: 16,
-          display: 'flex', alignItems: 'center', gap: 8,
+          display: 'flex', alignItems: 'center', gap: 10,
           letterSpacing: '-0.01em',
         }}>
-          🧪 ნახევრადფაბრიკატი
+          <BulkFabLogo size={36} />
+          <span>ნახევრადფაბრიკატი</span>
         </div>
 
         <div style={{ marginBottom: 12 }}>
@@ -209,7 +213,7 @@ export default function BulkCalcPage({ user, theme }) {
         }}>
           🥩 ინგრედიენტები <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 500 }}>კგ-ში</span>
         </div>
-        <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} />
+        <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} user={user} />
       </div>
 
       {/* SUMMARY */}

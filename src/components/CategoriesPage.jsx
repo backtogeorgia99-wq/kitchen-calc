@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
+import BulkFabLogo from './BulkFabLogo'
 import { showToast } from './Toast'
 
-export default function CategoriesPage({ user, theme }) {
+/** @param {{ user: object, theme: string, view?: 'all' | 'bulk' | 'portion' }} props */
+export default function CategoriesPage({ user, theme, view = 'all' }) {
   const [bulkCats, setBulkCats] = useState([])
   const [portionCats, setPortionCats] = useState([])
   const [loading, setLoading] = useState(true)
@@ -26,8 +29,9 @@ export default function CategoriesPage({ user, theme }) {
 
   const add = async (type, name) => {
     if (!name.trim()) { showToast('სახელი სავალდებულოა', 'error'); return }
-    const { error } = await supabase.from('categories').insert({ name: name.trim(), type })
+    const { data: row, error } = await supabase.from('categories').insert({ name: name.trim(), type }).select('id').single()
     if (error) { showToast('შეცდომა', 'error'); return }
+    await logAudit(user, 'category_create', 'category', row?.id, { name: name.trim(), type })
     showToast('✅ დაემატა!')
     if (type === 'bulk') { setNewBulk('') } else { setNewPortion('') }
     load()
@@ -37,6 +41,7 @@ export default function CategoriesPage({ user, theme }) {
     if (!editingName.trim()) { showToast('სახელი სავალდებულოა', 'error'); return }
     const { error } = await supabase.from('categories').update({ name: editingName.trim() }).eq('id', id)
     if (error) { showToast('შეცდომა', 'error'); return }
+    await logAudit(user, 'category_update', 'category', id, { name: editingName.trim() })
     showToast('✅ განახლდა!')
     setEditingId(null)
     load()
@@ -45,6 +50,7 @@ export default function CategoriesPage({ user, theme }) {
   const remove = async (id) => {
     if (!window.confirm('წაიშალოს?')) return
     await supabase.from('categories').delete().eq('id', id)
+    await logAudit(user, 'category_delete', 'category', id, {})
     showToast('✅ წაიშალა!')
     load()
   }
@@ -188,29 +194,39 @@ export default function CategoriesPage({ user, theme }) {
     </div>
   )
 
-  return (
-    <div style={{ padding: '16px 16px 48px', animation: 'fadeUp 0.3s ease' }}>
-      <div style={card}>
-        <div style={{
-          fontSize: 13, fontWeight: 800,
-          color: '#2d6fe0', marginBottom: 16,
-          letterSpacing: '-0.01em',
-        }}>
-          🧪 ნახევრადფაბრიკატის კატეგორიები
-        </div>
-        {renderList(bulkCats, 'bulk', '#2d6fe0')}
-      </div>
+  const showBulk = view === 'all' || view === 'bulk'
+  const showPortion = view === 'all' || view === 'portion'
+  const outerPad = view === 'all' ? '16px 16px 48px' : '0 0 32px'
 
-      <div style={card}>
-        <div style={{
-          fontSize: 13, fontWeight: 800,
-          color: '#2d9e5f', marginBottom: 16,
-          letterSpacing: '-0.01em',
-        }}>
-          🍽️ 1 ულუფის კატეგორიები
+  return (
+    <div style={{ padding: outerPad, animation: 'fadeUp 0.3s ease' }}>
+      {showBulk && (
+        <div style={card}>
+          <div style={{
+            fontSize: 13, fontWeight: 800,
+            color: '#2d6fe0', marginBottom: 16,
+            letterSpacing: '-0.01em',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <BulkFabLogo size={28} />
+            ნახევრადფაბრიკატის კატეგორიები
+          </div>
+          {renderList(bulkCats, 'bulk', '#2d6fe0')}
         </div>
-        {renderList(portionCats, 'portion', '#2d9e5f')}
-      </div>
+      )}
+
+      {showPortion && (
+        <div style={card}>
+          <div style={{
+            fontSize: 13, fontWeight: 800,
+            color: '#2d9e5f', marginBottom: 16,
+            letterSpacing: '-0.01em',
+          }}>
+            🍽️ 1 ულუფის კატეგორიები
+          </div>
+          {renderList(portionCats, 'portion', '#2d9e5f')}
+        </div>
+      )}
     </div>
   )
 }

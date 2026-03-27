@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import IngredientTable from './IngredientTable'
+import BulkFabLogo from './BulkFabLogo'
 import { showToast } from './Toast'
 
 const PORTION_UNITS = ['კგ', 'გ', 'ც', 'მლ', 'ლ']
@@ -66,16 +68,17 @@ export default function PortionCalcPage({ user, theme }) {
       price_per_kg: parseFloat(r.price) || 0,
       cost: (parseFloat(r.qty) || 0) * (parseFloat(r.price) || 0),
     }))
-    const { error } = await supabase.from('calculations').insert({
+    const { data: created, error } = await supabase.from('calculations').insert({
       type: 'portion', name: name.trim(), category, servings: 1,
       yield_amount: parseFloat(weight) || null, yield_unit: weightUnit,
       ingredients: rows,
       total_cost: parseFloat(total.toFixed(4)),
       cost_per_serving: parseFloat(total.toFixed(4)),
-      note: note.trim() || null, created_by: user?.name,
-    })
+      note: note.trim() || null, created_by: user?.email || user?.name,
+    }).select('id').single()
     setLoading(false)
     if (error) { showToast('შეცდომა: ' + error.message, 'error'); return }
+    await logAudit(user, 'create', 'calculation', created?.id, { name: name.trim(), type: 'portion' })
     showToast('✅ წარმატებით შეინახა!')
     clear()
   }
@@ -172,8 +175,8 @@ export default function PortionCalcPage({ user, theme }) {
         }}>
           🥩 ინგრედიენტები <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 500 }}>1 ულუფა</span>
         </div>
-        <button onClick={() => setShowBulkModal(true)} style={{
-          width: '100%', padding: '10px',
+        <button type="button" onClick={() => setShowBulkModal(true)} style={{
+          width: '100%', padding: '10px 12px',
           background: isDark ? 'rgba(45,111,224,0.08)' : 'rgba(45,111,224,0.06)',
           border: `1.5px solid ${isDark ? 'rgba(45,111,224,0.25)' : 'rgba(45,111,224,0.2)'}`,
           borderRadius: 10, color: '#2d6fe0',
@@ -181,10 +184,12 @@ export default function PortionCalcPage({ user, theme }) {
           marginBottom: 12,
           fontFamily: "'Noto Sans Georgian', sans-serif",
           letterSpacing: '-0.01em',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          🧪 + ნახევრადფაბრიკატიდან ჩასმა
+          <BulkFabLogo size={22} />
+          + ნახევრადფაბრიკატიდან ჩასმა
         </button>
-        <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} />
+        <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} user={user} />
       </div>
 
       <div style={card}>
@@ -265,8 +270,13 @@ export default function PortionCalcPage({ user, theme }) {
             boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
           }}>
             <div style={{ width: 36, height: 4, background: isDark ? '#2a2a2a' : '#ede8e0', borderRadius: 2, margin: '0 auto 18px' }} />
-            <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f2ede6' : '#1a1410', marginBottom: 14, letterSpacing: '-0.02em' }}>
-              🧪 ნახევრადფაბრიკატის არჩევა
+            <div style={{
+              fontSize: 15, fontWeight: 800, color: isDark ? '#f2ede6' : '#1a1410',
+              marginBottom: 14, letterSpacing: '-0.02em',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <BulkFabLogo size={28} />
+              ნახევრადფაბრიკატის არჩევა
             </div>
             {bulkList.length === 0 ? (
               <div style={{ textAlign: 'center', color: isDark ? '#5e5045' : '#b0a090', padding: 32 }}>ნახევრადფაბრიკატი არ მოიძებნა</div>

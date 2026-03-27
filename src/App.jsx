@@ -5,14 +5,17 @@ import BulkCalcPage from './components/BulkCalcPage'
 import PortionCalcPage from './components/PortionCalcPage'
 import ListPage from './components/ListPage'
 import CategoriesPage from './components/CategoriesPage'
+import AdminPanelPage from './components/AdminPanelPage'
+import BulkFabLogo from './components/BulkFabLogo'
 import { Toast, useToast } from './components/Toast'
 
-const TABS = [
-  { key: 'bulk', icon: '🧪', label: 'ნ/ფაბრიკატი' },
+const TABS_BASE = [
+  { key: 'bulk', icon: null, label: 'ნ/ფაბრიკატი' },
   { key: 'portion', icon: '🍽️', label: '1 ულუფა' },
   { key: 'list', icon: '📋', label: 'სია' },
-  { key: 'categories', icon: '🗂️', label: 'კატეგ.' },
 ]
+
+const TAB_CATEGORIES = { key: 'categories', icon: '🗂️', label: 'კატეგ.' }
 
 const ROLE_LABELS = {
   admin: '🔑 ადმინი',
@@ -43,6 +46,8 @@ export default function App() {
   if (!user) return <LoginPage onLogin={setUser} theme={theme} />
 
   const isDark = theme === 'dark'
+  const isAdmin = user.role === 'admin'
+  const bottomTabs = isAdmin ? TABS_BASE : [...TABS_BASE, TAB_CATEGORIES]
 
   return (
     <div style={{
@@ -87,6 +92,30 @@ export default function App() {
           }}>
             {ROLE_LABELS[user.role]}
           </div>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setTab('admin')}
+              style={{
+                padding: '6px 12px',
+                background: tab === 'admin'
+                  ? 'linear-gradient(135deg, #e8960f, #d4870e)'
+                  : 'var(--surface2)',
+                border: tab === 'admin'
+                  ? '1px solid rgba(232,150,15,0.5)'
+                  : '1px solid var(--border)',
+                borderRadius: 10,
+                fontSize: 11, fontWeight: 800,
+                cursor: 'pointer',
+                color: tab === 'admin' ? '#000' : 'var(--text2)',
+                fontFamily: "'Noto Sans Georgian', sans-serif",
+                whiteSpace: 'nowrap',
+                boxShadow: tab === 'admin' ? '0 2px 10px rgba(232,150,15,0.35)' : 'none',
+              }}
+            >
+              ⚙ ადმინ პანელი
+            </button>
+          )}
           <button onClick={toggleTheme} style={{
             width: 34, height: 34,
             background: 'var(--surface2)',
@@ -119,6 +148,7 @@ export default function App() {
         {tab === 'portion' && <PortionCalcPage user={user} theme={theme} />}
         {tab === 'list' && <ListPage user={user} theme={theme} />}
         {tab === 'categories' && <CategoriesPage user={user} theme={theme} />}
+        {tab === 'admin' && <AdminPanelPage user={user} theme={theme} />}
       </div>
 
       {/* BOTTOM NAV */}
@@ -132,9 +162,10 @@ export default function App() {
           ? '0 -4px 20px rgba(0,0,0,0.3)'
           : '0 -4px 20px rgba(0,0,0,0.06)',
       }}>
-        {TABS.map(t => (
+        {bottomTabs.map(t => (
           <button
             key={t.key}
+            type="button"
             onClick={() => setTab(t.key)}
             style={{
               flex: 1, padding: '8px 4px',
@@ -154,9 +185,17 @@ export default function App() {
           >
             <span style={{
               fontSize: 20,
-              filter: tab === t.key ? 'none' : 'grayscale(0.5) opacity(0.6)',
+              filter: t.key === 'bulk' ? 'none' : (tab === t.key ? 'none' : 'grayscale(0.5) opacity(0.6)'),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 24,
             }}>
-              {t.icon}
+              {t.key === 'bulk' ? (
+                <BulkFabLogo size={26} dimmed={tab !== t.key} />
+              ) : (
+                t.icon
+              )}
             </span>
             {t.label}
           </button>

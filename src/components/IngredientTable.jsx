@@ -1,5 +1,8 @@
-export default function IngredientTable({ ingredients, onChange, theme }) {
+import { canEditPrices } from '../lib/supabase'
+
+export default function IngredientTable({ ingredients, onChange, theme, user }) {
   const isDark = theme === 'dark'
+  const priceOk = canEditPrices(user)
 
   const inp = {
     width: '100%', padding: '9px 10px',
@@ -35,7 +38,14 @@ export default function IngredientTable({ ingredients, onChange, theme }) {
             textAlign: i === 0 ? 'left' : 'center',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
-          }}>{h}</div>
+          }}>
+            {h}
+            {i === 2 && !priceOk && (
+              <div style={{ fontSize: 8, fontWeight: 600, color: '#dc4444', textTransform: 'none', marginTop: 2, lineHeight: 1.2 }}>
+                🔒 ადმინი
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -56,10 +66,22 @@ export default function IngredientTable({ ingredients, onChange, theme }) {
             onFocus={e => e.target.style.borderColor = '#e8960f'}
             onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
           />
-          <input style={inp} type="number" placeholder="0.00"
-            min="0" step="0.01" value={row.price}
-            onChange={e => update(idx, 'price', e.target.value)}
-            onFocus={e => e.target.style.borderColor = '#e8960f'}
+          <input
+            style={{
+              ...inp,
+              opacity: priceOk ? 1 : 0.85,
+              cursor: priceOk ? 'text' : 'not-allowed',
+              background: priceOk ? inp.background : (isDark ? '#1a1a1a' : '#ece8e0'),
+            }}
+            type="number"
+            placeholder={priceOk ? '0.00' : '—'}
+            min="0"
+            step="0.01"
+            value={row.price}
+            disabled={!priceOk}
+            title={priceOk ? '' : 'ფასის შეცვლა მხოლოდ ადმინისტრატორს შეუძლია'}
+            onChange={e => priceOk && update(idx, 'price', e.target.value)}
+            onFocus={e => { if (priceOk) e.target.style.borderColor = '#e8960f' }}
             onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
           />
           <button onClick={() => remove(idx)} style={{
@@ -95,6 +117,21 @@ export default function IngredientTable({ ingredients, onChange, theme }) {
       >
         + ინგრედიენტი
       </button>
+
+      {!priceOk && (
+        <div style={{
+          marginTop: 10,
+          fontSize: 11,
+          color: isDark ? '#7a6d60' : '#9a8a78',
+          lineHeight: 1.45,
+          padding: '8px 10px',
+          borderRadius: 10,
+          background: isDark ? 'rgba(220,68,68,0.06)' : 'rgba(220,68,68,0.06)',
+          border: `1px solid ${isDark ? 'rgba(220,68,68,0.15)' : 'rgba(220,68,68,0.12)'}`,
+        }}>
+          ფასი (₾/კგ) იწერება მხოლოდ <strong style={{ color: '#e8960f' }}>ადმინისტრატორის</strong> მიერ. რაოდენობა და სახელი შეგიძლიათ შეცვალოთ.
+        </div>
+      )}
     </div>
   )
 }
