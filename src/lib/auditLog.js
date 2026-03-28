@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 export async function logAudit(user, action, entityType, entityId, meta = {}) {
   try {
-    await supabase.from('audit_log').insert({
+    const { error } = await supabase.from('audit_log').insert({
       actor_email: user?.email || null,
       actor_id: user?.id || null,
       action,
@@ -10,7 +10,11 @@ export async function logAudit(user, action, entityType, entityId, meta = {}) {
       entity_id: entityId || null,
       meta: typeof meta === 'object' && meta ? meta : {},
     })
-  } catch {
-    /* ჟურნალი არ უნდა გააფუჭოს მთავარი ოპერაცია */
+    if (error) {
+      // Supabase არ ყრის exception-ს — ცარიელი ჟურნალი ხშირად აქედანაა (RLS, არარსებული ცხრილი)
+      console.error('[audit_log]', error.message)
+    }
+  } catch (e) {
+    console.error('[audit_log]', e?.message || e)
   }
 }

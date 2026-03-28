@@ -7,12 +7,21 @@
 CREATE TABLE IF NOT EXISTS users (
   id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email           TEXT UNIQUE NOT NULL,
+  name            TEXT NOT NULL DEFAULT '',
   password_hash   TEXT NOT NULL,  -- აპში პირდაპირი ტექსტი ინახება (სვეტის სახელი ისტორიული)
   role            TEXT NOT NULL DEFAULT 'cook'
     CHECK (role IN ('admin', 'chef', 'cook')),
   active          BOOLEAN NOT NULL DEFAULT true,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ძველ ბაზებს, სადაც name არ იყო — დამატება და შევსება email-იდან
+ALTER TABLE users ADD COLUMN IF NOT EXISTS name TEXT;
+UPDATE users
+SET name = COALESCE(NULLIF(btrim(name), ''), NULLIF(split_part(email, '@', 1), ''), 'მომხმარებელი')
+WHERE name IS NULL OR btrim(COALESCE(name, '')) = '';
+ALTER TABLE users ALTER COLUMN name SET NOT NULL;
+ALTER TABLE users ALTER COLUMN name SET DEFAULT '';
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
@@ -38,8 +47,8 @@ CREATE POLICY "users_delete_anon" ON users
   USING (true);
 
 -- პირველი მომხმარებლის დამატება (შეცვალეთ email/პაროლი!)
--- INSERT INTO users (email, password_hash, role, active)
--- VALUES ('you@example.com', 'your-password', 'admin', true);
+-- INSERT INTO users (email, name, password_hash, role, active)
+-- VALUES ('you@example.com', 'სახელი', 'your-password', 'admin', true);
 
 CREATE TABLE IF NOT EXISTS calculations (
   id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -122,5 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id)
 
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "audit_all" ON audit_log;
+-- იგივე როლები რაც users/calculations-ზე (anon API key-ით აპი)
 CREATE POLICY "audit_all" ON audit_log
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO anon, authenticated
+  USING (true) WITH CHECK (true);

@@ -14,6 +14,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
   const [formEmail, setFormEmail] = useState('')
+  const [formName, setFormName] = useState('')
   const [formPassword, setFormPassword] = useState('')
   const [formRole, setFormRole] = useState('cook')
   const [formActive, setFormActive] = useState(true)
@@ -26,7 +27,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, role, active, created_at')
+      .select('id, email, name, role, active, created_at')
       .order('created_at', { ascending: false })
     if (error) {
       showToast('შეცდომა: ' + error.message, 'error')
@@ -39,9 +40,17 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
 
   useEffect(() => { load() }, [])
 
+  const resolvedName = (emailVal, nameVal) => {
+    const n = (nameVal || '').trim()
+    if (n) return n
+    const local = (emailVal || '').split('@')[0]?.trim()
+    return local || 'მომხმარებელი'
+  }
+
   const resetForm = () => {
     setEditingId(null)
     setFormEmail('')
+    setFormName('')
     setFormPassword('')
     setFormRole('cook')
     setFormActive(true)
@@ -55,6 +64,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
   const startEdit = (row) => {
     setEditingId(row.id)
     setFormEmail(row.email)
+    setFormName(row.name ?? '')
     setFormPassword('')
     setFormRole(row.role)
     setFormActive(row.active)
@@ -62,6 +72,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
 
   const save = async () => {
     const email = formEmail.trim()
+    const name = resolvedName(email, formName)
     if (!email) { showToast('Email სავალდებულოა', 'error'); return }
     if (editingId === 'new' && !formPassword.trim()) {
       showToast('ახალი მომხმარებლისთვის პაროლი სავალდებულოა', 'error')
@@ -73,20 +84,21 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
       if (editingId === 'new') {
         const { data: created, error } = await supabase.from('users').insert({
           email,
+          name,
           password_hash: formPassword,
           role: formRole,
           active: formActive,
         }).select('id').single()
         if (error) throw error
-        await logAudit(adminUser, 'user_create', 'user', created?.id, { email, role: formRole })
+        await logAudit(adminUser, 'user_create', 'user', created?.id, { email, name, role: formRole })
         showToast('✅ მომხმარებელი დაემატა')
         resetForm()
       } else {
-        const payload = { email, role: formRole, active: formActive }
+        const payload = { email, name, role: formRole, active: formActive }
         if (formPassword.trim()) payload.password_hash = formPassword.trim()
         const { error } = await supabase.from('users').update(payload).eq('id', editingId)
         if (error) throw error
-        await logAudit(adminUser, 'user_update', 'user', editingId, { email, role: formRole })
+        await logAudit(adminUser, 'user_update', 'user', editingId, { email, name, role: formRole })
         showToast('✅ განახლდა')
 
         const me = getCurrentUser()
@@ -269,6 +281,16 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
               onChange={e => setFormEmail(e.target.value)}
               placeholder="email@example.com"
             />
+            <label style={{ ...lbl, textTransform: 'none', letterSpacing: '0' }}>
+              სახელი <span style={{ fontWeight: 500, opacity: 0.85 }}>(ცარიელი დატოვებისას — email-ის ნაწილი @-მდე)</span>
+            </label>
+            <input
+              type="text"
+              style={{ ...inp, marginBottom: 12 }}
+              value={formName}
+              onChange={e => setFormName(e.target.value)}
+              placeholder="მაგ. გიორგი"
+            />
             <label style={lbl}>
               პაროლი {editingId !== 'new' && <span style={{ fontWeight: 500, textTransform: 'none' }}>(დატოვეთ ცარიელი თუ არ იცვლება)</span>}
             </label>
@@ -367,6 +389,14 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
                   fontSize: 14,
                   fontWeight: 600,
                   color: isDark ? '#f2ede6' : '#1a1410',
+                }}>
+                  {row.name?.trim() ? row.name : (row.email || '').split('@')[0] || row.email}
+                </div>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: isDark ? '#8a7a6a' : '#8a7a6a',
+                  marginTop: 2,
                 }}>
                   {row.email}
                 </div>

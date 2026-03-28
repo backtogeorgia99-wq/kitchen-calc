@@ -22,7 +22,7 @@ export default function BackupPage({ user, theme, onBack }) {
       const [calcs, cats, users] = await Promise.all([
         supabase.from('calculations').select('*').order('created_at', { ascending: false }),
         supabase.from('categories').select('*').order('name'),
-        supabase.from('users').select('id, email, role, active, created_at'),
+        supabase.from('users').select('id, email, name, role, active, created_at'),
       ])
       if (calcs.error) throw calcs.error
       if (cats.error) throw cats.error

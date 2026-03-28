@@ -7,6 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // ლოკალურ dev-ზე SW ხშირად ინახავს ძველ bundle-ს → ცარიელი გვერდი; პროდაქშენში SW იმუშავებს
+      devOptions: { enabled: false },
       includeAssets: ['icon.svg', 'pwa-maskable.svg'],
       manifest: {
         name: 'სამზარეულო კალკულაცია — ტიფლისი',

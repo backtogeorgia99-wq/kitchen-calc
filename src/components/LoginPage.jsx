@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { loginUser, saveCurrentUser } from '../lib/supabase'
+import { loginUser, saveCurrentUser, isSupabaseConfigured } from '../lib/supabase'
 
 export default function LoginPage({ onLogin, theme }) {
   const [email, setEmail] = useState('')
@@ -80,6 +80,27 @@ export default function LoginPage({ onLogin, theme }) {
         }}>
           შესვლა
         </div>
+
+        {!isSupabaseConfigured() && (
+          <div style={{
+            marginBottom: 18,
+            padding: '12px 14px',
+            borderRadius: 12,
+            background: isDark ? 'rgba(232,150,15,0.12)' : 'rgba(232,150,15,0.14)',
+            border: `1px solid ${isDark ? 'rgba(232,150,15,0.35)' : 'rgba(200,130,20,0.35)'}`,
+            fontSize: 12,
+            lineHeight: 1.5,
+            color: isDark ? '#e8c48a' : '#7a5a20',
+            textAlign: 'left',
+          }}>
+            <strong>ლოკალური პარამეტრები არ არის.</strong> პროექტის ფოლდერში შექმენით ფაილი{' '}
+            <code style={{ fontSize: 11, padding: '2px 6px', borderRadius: 6, background: isDark ? '#2a2418' : '#f0e8d8' }}>.env</code>
+            {' '}(შეგიძლიათ დააკოპიროთ <code style={{ fontSize: 11 }}>.env.example</code>) და ჩასვით Supabase-იდან{' '}
+            <code style={{ fontSize: 11 }}>VITE_SUPABASE_URL</code> და{' '}
+            <code style={{ fontSize: 11 }}>VITE_SUPABASE_ANON_KEY</code>. შემდეგ გაჩერებით გაუშვით თავიდან{' '}
+            <code style={{ fontSize: 11 }}>npm run dev</code>.
+          </div>
+        )}
 
         {/* EMAIL */}
         <div style={{ marginBottom: 14 }}>
