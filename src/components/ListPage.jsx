@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase, canEdit } from '../lib/supabase'
+import { supabase, canEdit, isSupabaseConfigured } from '../lib/supabase'
 import { useAppSettings, formatMoney, displaySellingPrice } from '../lib/formatMoney'
 import { exportCalculationsCsv, exportCalculationsXlsx, printCalculationsReport } from '../lib/exportCalculations'
 import { logAudit } from '../lib/auditLog'
@@ -37,6 +37,8 @@ export default function ListPage({ user, theme }) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  /** Supabase `categories` ცხრილი — სახელი + ტიპი (bulk | portion) */
+  const [dbCategories, setDbCategories] = useState([])
   const [selected, setSelected] = useState(null)
 
   const isDark = theme === 'dark'
@@ -58,20 +60,61 @@ export default function ListPage({ user, theme }) {
     setLoading(false)
   }
 
+  const loadCategories = async () => {
+    if (!isSupabaseConfigured()) {
+      setDbCategories([])
+      return
+    }
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, type')
+      .order('name')
+    if (error) {
+      console.warn('[ListPage] categories:', error.message)
+      return
+    }
+    setDbCategories(data || [])
+  }
+
   useEffect(() => {
     load()
-    const channel = supabase
-      .channel('calculations')
+    loadCategories()
+    const chCalcs = supabase
+      .channel('list-calculations')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calculations' }, () => load())
       .subscribe()
-    return () => supabase.removeChannel(channel)
+    const chCats = supabase
+      .channel('list-categories')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => loadCategories())
+      .subscribe()
+    return () => {
+      supabase.removeChannel(chCalcs)
+      supabase.removeChannel(chCats)
+    }
   }, [])
 
-  const categories = useMemo(() => {
+  /** `categories` ცხრილი (ტიპის მიხედვით) + იგივე ტიპის ჩანაწერებში არსებული სახელები (ძველი/არასინქრონი) */
+  const categoryOptions = useMemo(() => {
+    const rows =
+      filter === 'all'
+        ? dbCategories
+        : dbCategories.filter(c => c.type === filter)
     const s = new Set()
-    calcs.forEach(c => { if (c.category && String(c.category).trim()) s.add(c.category.trim()) })
+    rows.forEach(c => {
+      if (c.name && String(c.name).trim()) s.add(c.name.trim())
+    })
+    const calcRows = filter === 'all' ? calcs : calcs.filter(c => c.type === filter)
+    calcRows.forEach(c => {
+      if (c.category && String(c.category).trim()) s.add(c.category.trim())
+    })
     return [...s].sort((a, b) => a.localeCompare(b, 'ka'))
-  }, [calcs])
+  }, [dbCategories, calcs, filter])
+
+  useEffect(() => {
+    if (categoryFilter && !categoryOptions.includes(categoryFilter)) {
+      setCategoryFilter('')
+    }
+  }, [filter, categoryOptions, categoryFilter])
 
   const startOfDay = (d) => {
     const x = new Date(d)
@@ -205,30 +248,9 @@ export default function ListPage({ user, theme }) {
         </div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>კატეგორია</div>
-        <select
-          value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value)}
-          style={{
-            width: '100%', padding: '10px 12px',
-            background: 'var(--input-fill)',
-            border: '1.5px solid var(--input-border)',
-            borderRadius: 12,
-            color: 'var(--text)',
-            fontSize: 13,
-            fontFamily: "'Noto Sans Georgian', sans-serif",
-          }}
-        >
-          <option value="">ყველა კატეგორია</option>
-          {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* TYPE FILTERS */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
+      {/* TYPE FILTERS — ჯერ ტიპი, შემდეგ კატეგორია ამ ტიპის მიხედვით */}
+      <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>ტიპი</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
         {[
           { key: 'all', label: '🗂 ყველა', bulk: false },
           { key: 'bulk', label: 'ნ/ფაბრიკატი', bulk: true },
@@ -254,6 +276,35 @@ export default function ListPage({ user, theme }) {
             {f.label}
           </button>
         ))}
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          კატეგორია
+          <span style={{ fontWeight: 600, textTransform: 'none', letterSpacing: '0.02em', color: 'var(--text3)', marginLeft: 6 }}>
+            {filter === 'bulk' ? '(ნ/ფაბრიკატი)' : filter === 'portion' ? '(1 ულუფა)' : ''}
+          </span>
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          style={{
+            width: '100%', padding: '10px 12px',
+            background: 'var(--input-fill)',
+            border: '1.5px solid var(--input-border)',
+            borderRadius: 12,
+            color: 'var(--text)',
+            fontSize: 13,
+            fontFamily: "'Noto Sans Georgian', sans-serif",
+          }}
+        >
+          <option value="">
+            {filter === 'all' ? 'ყველა კატეგორია' : filter === 'bulk' ? 'ყველა (ნ/ფ კატეგორია)' : 'ყველა (1 ულუფის კატეგორია)'}
+          </option>
+          {categoryOptions.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
       </div>
 
       {/* EXPORT */}
