@@ -230,7 +230,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
               onClick={startAdd}
               style={{
                 padding: '8px 14px',
-                background: '#e8960f',
+                background: 'var(--accent-gradient)',
                 color: '#000',
                 border: 'none',
                 borderRadius: 10,
@@ -249,10 +249,10 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
           marginBottom: 16,
           padding: 12,
           borderRadius: 12,
-          background: isDark ? 'rgba(232,150,15,0.06)' : 'rgba(232,150,15,0.08)',
-          border: `1px solid ${isDark ? 'rgba(232,150,15,0.15)' : 'rgba(232,150,15,0.22)'}`,
+          background: isDark ? 'rgba(72,209,204,0.08)' : 'rgba(72,209,204,0.1)',
+          border: `1px solid ${isDark ? 'rgba(72,209,204,0.18)' : 'rgba(72,209,204,0.28)'}`,
         }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#e8960f', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--accent-bright)', marginBottom: 8 }}>
             როლების მინიჭება
           </div>
           <div style={{ fontSize: 11, lineHeight: 1.5, color: isDark ? '#9e9080' : '#7a6a55' }}>
@@ -270,7 +270,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
             background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
           }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#e8960f', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--accent-bright)', marginBottom: 14 }}>
               {editingId === 'new' ? 'ახალი მომხმარებელი' : 'რედაქტირება'}
             </div>
             <label style={lbl}>Email</label>
@@ -328,7 +328,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
                 onClick={save}
                 style={{
                   padding: '10px 18px',
-                  background: saving ? '#a07020' : '#e8960f',
+                  background: saving ? 'var(--accent2)' : 'var(--accent-gradient)',
                   color: '#000',
                   border: 'none',
                   borderRadius: 10,
@@ -366,7 +366,7 @@ export default function UsersAdminPage({ user: adminUser, theme, onBack }) {
             <div style={{
               width: 28, height: 28,
               border: `3px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-              borderTopColor: '#e8960f',
+              borderTopColor: 'var(--accent-bright)',
               borderRadius: '50%',
               animation: 'spin 0.8s linear infinite',
             }} />

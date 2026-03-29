@@ -22,9 +22,9 @@ export function Toast({ toast }) {
   if (!toast) return null
 
   const colors = {
-    success: { bg: 'rgba(45,158,95,0.12)', border: 'rgba(45,158,95,0.3)', color: '#2d9e5f' },
-    error: { bg: 'rgba(220,68,68,0.12)', border: 'rgba(220,68,68,0.3)', color: '#dc4444' },
-    info: { bg: 'rgba(232,150,15,0.12)', border: 'rgba(232,150,15,0.3)', color: '#e8960f' },
+    success: { bg: 'var(--green-dim)', border: 'rgba(31,107,74,0.35)', color: 'var(--green-bright)' },
+    error: { bg: 'var(--red-dim)', border: 'rgba(185,28,28,0.35)', color: 'var(--red)' },
+    info: { bg: 'var(--accent-dim)', border: 'var(--border-accent)', color: 'var(--accent-bright)' },
   }
   const c = colors[toast.type] || colors.success
 
@@ -34,15 +34,16 @@ export function Toast({ toast }) {
       transform: 'translateX(-50%)',
       background: c.bg,
       border: `1.5px solid ${c.border}`,
-      borderRadius: 14,
-      padding: '12px 20px',
+      borderRadius: 16,
+      padding: '14px 22px',
       color: c.color,
-      fontSize: 13, fontWeight: 700,
+      fontSize: 12, fontWeight: 800,
+      letterSpacing: '0.04em',
       zIndex: 300, whiteSpace: 'nowrap',
       animation: 'fadeUp 0.25s ease',
       maxWidth: 'calc(100vw - 48px)',
-      backdropFilter: 'blur(12px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+      backdropFilter: 'blur(16px) saturate(1.2)',
+      boxShadow: 'var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.12)',
       fontFamily: "'Noto Sans Georgian', sans-serif",
     }}>
       {toast.msg}

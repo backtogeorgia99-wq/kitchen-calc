@@ -94,7 +94,7 @@ export default function AuditLogPage({ theme, onBack }) {
                 fontSize: 12,
               }}
             >
-              <div style={{ fontWeight: 800, color: '#e8960f', marginBottom: 4 }}>{r.action}</div>
+              <div style={{ fontWeight: 800, color: 'var(--accent-bright)', marginBottom: 4 }}>{r.action}</div>
               <div style={{ color: isDark ? '#9e9080' : '#7a6a55' }}>
                 {r.entity_type}
                 {r.entity_id ? ` · ${r.entity_id.slice(0, 8)}…` : ''}

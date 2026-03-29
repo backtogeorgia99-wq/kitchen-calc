@@ -5,14 +5,14 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
   const priceOk = canEditPrices(user)
 
   const inp = {
-    width: '100%', padding: '9px 10px',
-    background: isDark ? '#242424' : '#f8f6f2',
-    border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-    borderRadius: 9,
-    color: isDark ? '#f2ede6' : '#1a1410',
+    width: '100%', padding: '10px 11px',
+    background: 'var(--input-fill)',
+    border: '1.5px solid var(--input-border)',
+    borderRadius: 11,
+    color: 'var(--text)',
     fontSize: 12, outline: 'none',
     fontFamily: "'Noto Sans Georgian', sans-serif",
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
   }
 
   const update = (idx, field, val) => {
@@ -34,7 +34,7 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
         {['ინგრედიენტი', 'კგ', '₾/კგ', ''].map((h, i) => (
           <div key={i} style={{
             fontSize: 10, fontWeight: 700,
-            color: isDark ? '#5e5045' : '#b0a090',
+            color: i === 1 ? 'var(--qty-red)' : 'var(--text-muted)',
             textAlign: i === 0 ? 'left' : 'center',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
@@ -57,14 +57,20 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
         }}>
           <input style={inp} type="text" placeholder="სახელი"
             value={row.name} onChange={e => update(idx, 'name', e.target.value)}
-            onFocus={e => e.target.style.borderColor = '#e8960f'}
-            onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+            onFocus={e => { e.target.style.borderColor = 'var(--accent-bright)'; e.target.style.boxShadow = '0 0 0 2px var(--accent-dim)' }}
+            onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = 'none' }}
           />
-          <input style={inp} type="number" placeholder="0.000"
+          <input style={{
+            ...inp,
+            color: 'var(--qty-red)',
+            fontWeight: 700,
+            background: isDark ? 'rgba(255,138,128,0.06)' : 'var(--qty-red-muted)',
+            borderColor: isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)',
+          }} type="number" placeholder="0.000"
             min="0" step="0.001" value={row.qty}
             onChange={e => update(idx, 'qty', e.target.value)}
-            onFocus={e => e.target.style.borderColor = '#e8960f'}
-            onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+            onFocus={e => { e.target.style.borderColor = '#dc4444' }}
+            onBlur={e => { e.target.style.borderColor = isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)' }}
           />
           <input
             style={{
@@ -81,8 +87,8 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
             disabled={!priceOk}
             title={priceOk ? '' : 'ფასის შეცვლა მხოლოდ ადმინისტრატორს შეუძლია'}
             onChange={e => priceOk && update(idx, 'price', e.target.value)}
-            onFocus={e => { if (priceOk) e.target.style.borderColor = '#e8960f' }}
-            onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+            onFocus={e => { if (priceOk) { e.target.style.borderColor = 'var(--accent-bright)'; e.target.style.boxShadow = '0 0 0 2px var(--accent-dim)' } }}
+            onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = 'none' }}
           />
           <button onClick={() => remove(idx)} style={{
             width: 32, height: 32,
@@ -107,8 +113,8 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
           transition: 'all 0.2s',
         }}
         onMouseEnter={e => {
-          e.target.style.borderColor = '#e8960f'
-          e.target.style.color = '#e8960f'
+          e.target.style.borderColor = 'var(--accent-bright)'
+          e.target.style.color = 'var(--accent-bright)'
         }}
         onMouseLeave={e => {
           e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'
@@ -129,7 +135,7 @@ export default function IngredientTable({ ingredients, onChange, theme, user }) 
           background: isDark ? 'rgba(220,68,68,0.06)' : 'rgba(220,68,68,0.06)',
           border: `1px solid ${isDark ? 'rgba(220,68,68,0.15)' : 'rgba(220,68,68,0.12)'}`,
         }}>
-          ფასი (₾/კგ) იწერება მხოლოდ <strong style={{ color: '#e8960f' }}>ადმინისტრატორის</strong> მიერ. რაოდენობა და სახელი შეგიძლიათ შეცვალოთ.
+          ფასი (₾/კგ) იწერება მხოლოდ <strong style={{ color: 'var(--accent-bright)' }}>ადმინისტრატორის</strong> მიერ. რაოდენობა და სახელი შეგიძლიათ შეცვალოთ.
         </div>
       )}
     </div>

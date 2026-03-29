@@ -100,13 +100,13 @@ export default function AdminPanelPage({ user, theme }) {
         padding: '16px 18px',
         borderRadius: 16,
         background: isDark
-          ? 'linear-gradient(135deg, rgba(232,150,15,0.12) 0%, rgba(232,150,15,0.04) 100%)'
-          : 'linear-gradient(135deg, rgba(232,150,15,0.15) 0%, rgba(232,150,15,0.05) 100%)',
-        border: `1px solid ${isDark ? 'rgba(232,150,15,0.25)' : 'rgba(232,150,15,0.35)'}`,
+          ? 'linear-gradient(135deg, rgba(72,209,204,0.14) 0%, rgba(72,209,204,0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(72,209,204,0.16) 0%, rgba(72,209,204,0.06) 100%)',
+        border: `1px solid ${isDark ? 'rgba(72,209,204,0.22)' : 'rgba(72,209,204,0.32)'}`,
       }}>
         <div style={{
           fontSize: 11, fontWeight: 800,
-          color: '#e8960f',
+          color: 'var(--accent-bright)',
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           marginBottom: 6,
@@ -201,7 +201,7 @@ export default function AdminPanelPage({ user, theme }) {
           style={{
             ...btnBase,
             background: isDark ? '#2a2520' : '#f5f0e8',
-            border: `1.5px solid ${isDark ? 'rgba(232,150,15,0.35)' : 'rgba(180,140,80,0.35)'}`,
+            border: `1.5px solid ${isDark ? 'rgba(72,209,204,0.32)' : 'rgba(72,209,204,0.35)'}`,
           }}
         >
           <span style={{ fontSize: 28 }}>💰</span>

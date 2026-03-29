@@ -79,7 +79,7 @@ export default function CategoriesPage({ user, theme, view = 'all' }) {
       <div style={{
         width: 32, height: 32,
         border: `3px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-        borderTopColor: '#e8960f',
+        borderTopColor: 'var(--accent-bright)',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />

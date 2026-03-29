@@ -103,7 +103,7 @@ export default function BusinessSettingsPage({ theme, onBack }) {
         style={{
           width: '100%',
           padding: 14,
-          background: '#e8960f',
+          background: 'var(--accent-gradient)',
           color: '#000',
           border: 'none',
           borderRadius: 14,

@@ -20,7 +20,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete, onCh
 
   const isDark = theme === 'dark'
   const isBulk = calc.type === 'bulk'
-  const accentColor = isBulk ? '#e8960f' : '#2d9e5f'
+  const accentColor = isBulk ? 'var(--accent-bright)' : 'var(--green-bright)'
 
   const total = ingredients.reduce((sum, r) => {
     return sum + (parseFloat(r.qty) || 0) * (parseFloat(r.price) || 0)
@@ -238,7 +238,7 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete, onCh
                   <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                     {isBulk ? 'გამოსავლიანობა' : 'ულუფის წონა'}
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: isDark ? '#f2ede6' : '#1a1410' }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--qty-red)', letterSpacing: '-0.02em' }}>
                     {calc.yield_amount} {calc.yield_unit}
                   </div>
                 </div>
@@ -265,7 +265,10 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete, onCh
                 }}>
                   <span style={{ fontSize: 13, color: isDark ? '#f2ede6' : '#1a1410', fontWeight: 500 }}>{ing.name}</span>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090' }}>{ing.qty_kg}კგ · {formatMoney(ing.price_per_kg, settings)}/კგ</span>
+                    <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090' }}>
+                      <span style={{ color: 'var(--qty-red)', fontWeight: 800 }}>{ing.qty_kg} კგ</span>
+                      {' · '}{formatMoney(ing.price_per_kg, settings)}/კგ
+                    </span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: accentColor }}>{formatMoney(ing.cost, settings)}</span>
                   </div>
                 </div>
@@ -275,9 +278,9 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete, onCh
             {/* TOTAL */}
             <div style={{
               background: isDark
-                ? isBulk ? 'rgba(232,150,15,0.08)' : 'rgba(45,158,95,0.08)'
-                : isBulk ? 'rgba(232,150,15,0.06)' : 'rgba(45,158,95,0.06)',
-              border: `1.5px solid ${isBulk ? 'rgba(232,150,15,0.25)' : 'rgba(45,158,95,0.25)'}`,
+                ? isBulk ? 'rgba(72,209,204,0.1)' : 'rgba(45,158,95,0.08)'
+                : isBulk ? 'rgba(72,209,204,0.08)' : 'rgba(45,158,95,0.06)',
+              border: `1.5px solid ${isBulk ? 'rgba(72,209,204,0.28)' : 'rgba(45,158,95,0.25)'}`,
               borderRadius: 14, padding: '14px 16px',
               display: 'flex', justifyContent: 'space-between',
               alignItems: 'center', marginBottom: 18,
@@ -313,8 +316,8 @@ export default function DetailModal({ calc, user, theme, onClose, onDelete, onCh
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                   <button type="button" onClick={() => setEditing(true)} style={{
                     padding: 13, background: isDark ? '#242424' : '#f8f6f2',
-                    color: '#e8960f',
-                    border: `1.5px solid ${isDark ? 'rgba(232,150,15,0.3)' : 'rgba(232,150,15,0.25)'}`,
+                    color: 'var(--accent-bright)',
+                    border: `1.5px solid ${isDark ? 'rgba(72,209,204,0.28)' : 'rgba(72,209,204,0.26)'}`,
                     borderRadius: 14, fontSize: 13, fontWeight: 700,
                     cursor: 'pointer',
                     fontFamily: "'Noto Sans Georgian', sans-serif",

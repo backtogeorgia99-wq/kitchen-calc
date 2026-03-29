@@ -7,7 +7,7 @@ import DetailModal from './DetailModal'
 import BulkFabLogo from './BulkFabLogo'
 import { showToast } from './Toast'
 
-function ListSkeleton({ isDark }) {
+function ListSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {[1, 2, 3, 4, 5].map(i => (
@@ -16,8 +16,8 @@ function ListSkeleton({ isDark }) {
           style={{
             height: 88,
             borderRadius: 18,
-            background: isDark ? '#1e1e1e' : '#ffffff',
-            border: `1px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+            background: 'var(--surface)',
+            border: '1px solid var(--border-card)',
             animation: 'pulse 1.2s ease-in-out infinite',
             animationDelay: `${i * 0.08}s`,
           }}
@@ -142,7 +142,7 @@ export default function ListPage({ user, theme }) {
         <div style={{
           position: 'absolute', left: 14, top: '50%',
           transform: 'translateY(-50%)',
-          fontSize: 14, color: isDark ? '#5e5045' : '#b0a090',
+          fontSize: 14, color: 'var(--text-muted)',
           pointerEvents: 'none',
         }}>🔍</div>
         <input
@@ -151,15 +151,13 @@ export default function ListPage({ user, theme }) {
           onChange={e => setSearch(e.target.value)}
           style={{
             width: '100%', padding: '12px 14px 12px 38px',
-            background: isDark ? '#1e1e1e' : '#ffffff',
-            border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-            borderRadius: 14,
-            color: isDark ? '#f2ede6' : '#1a1410',
+            background: 'var(--input-fill)',
+            border: '1.5px solid var(--input-border)',
+            borderRadius: 16,
+            color: 'var(--text)',
             fontSize: 13, outline: 'none',
             fontFamily: "'Noto Sans Georgian', sans-serif",
-            boxShadow: isDark
-              ? '0 4px 20px rgba(0,0,0,0.3)'
-              : '0 4px 20px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         />
       </div>
@@ -172,34 +170,34 @@ export default function ListPage({ user, theme }) {
         marginBottom: 10,
       }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#5e5045' : '#b0a090', marginBottom: 4 }}>დან თარიღი</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>დან თარიღი</div>
           <input
             type="date"
             value={dateFrom}
             onChange={e => setDateFrom(e.target.value)}
             style={{
               width: '100%', padding: '10px 12px',
-              background: isDark ? '#1e1e1e' : '#ffffff',
-              border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+              background: 'var(--input-fill)',
+              border: '1.5px solid var(--input-border)',
               borderRadius: 12,
-              color: isDark ? '#f2ede6' : '#1a1410',
+              color: 'var(--text)',
               fontSize: 12,
               fontFamily: "'Noto Sans Georgian', sans-serif",
             }}
           />
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#5e5045' : '#b0a090', marginBottom: 4 }}>მდე თარიღი</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>მდე თარიღი</div>
           <input
             type="date"
             value={dateTo}
             onChange={e => setDateTo(e.target.value)}
             style={{
               width: '100%', padding: '10px 12px',
-              background: isDark ? '#1e1e1e' : '#ffffff',
-              border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+              background: 'var(--input-fill)',
+              border: '1.5px solid var(--input-border)',
               borderRadius: 12,
-              color: isDark ? '#f2ede6' : '#1a1410',
+              color: 'var(--text)',
               fontSize: 12,
               fontFamily: "'Noto Sans Georgian', sans-serif",
             }}
@@ -208,16 +206,16 @@ export default function ListPage({ user, theme }) {
       </div>
 
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#5e5045' : '#b0a090', marginBottom: 4 }}>კატეგორია</div>
+        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>კატეგორია</div>
         <select
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
           style={{
             width: '100%', padding: '10px 12px',
-            background: isDark ? '#1e1e1e' : '#ffffff',
-            border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
+            background: 'var(--input-fill)',
+            border: '1.5px solid var(--input-border)',
             borderRadius: 12,
-            color: isDark ? '#f2ede6' : '#1a1410',
+            color: 'var(--text)',
             fontSize: 13,
             fontFamily: "'Noto Sans Georgian', sans-serif",
           }}
@@ -237,17 +235,18 @@ export default function ListPage({ user, theme }) {
           { key: 'portion', label: '🍽️ 1 ულუფა', bulk: false },
         ].map(f => (
           <button key={f.key} type="button" onClick={() => setFilter(f.key)} style={{
-            whiteSpace: 'nowrap', padding: '8px 14px',
+            whiteSpace: 'nowrap', padding: '9px 16px',
             background: filter === f.key
-              ? '#e8960f'
-              : (isDark ? '#1e1e1e' : '#ffffff'),
-            border: `1.5px solid ${filter === f.key ? '#e8960f' : (isDark ? '#2a2a2a' : '#ede8e0')}`,
-            borderRadius: 20,
-            color: filter === f.key ? '#000' : (isDark ? '#9e9080' : '#7a6a55'),
-            fontSize: 12, fontWeight: filter === f.key ? 800 : 500,
+              ? 'var(--accent-gradient)'
+              : 'var(--surface)',
+            border: `1px solid ${filter === f.key ? 'var(--border-accent)' : 'var(--border-card)'}`,
+            borderRadius: 22,
+            color: filter === f.key ? '#1a1410' : 'var(--text2)',
+            fontSize: 11, fontWeight: filter === f.key ? 800 : 600,
+            letterSpacing: '0.04em',
             cursor: 'pointer', flexShrink: 0,
             fontFamily: "'Noto Sans Georgian', sans-serif",
-            boxShadow: filter === f.key ? '0 4px 12px rgba(232,150,15,0.3)' : 'none',
+            boxShadow: filter === f.key ? '0 4px 16px var(--accent-glow)' : 'var(--shadow-sm)',
             transition: 'all 0.2s',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -260,12 +259,12 @@ export default function ListPage({ user, theme }) {
       {/* EXPORT */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16,
-        padding: 12,
-        borderRadius: 14,
-        background: isDark ? 'rgba(232,150,15,0.06)' : 'rgba(232,150,15,0.08)',
-        border: `1px solid ${isDark ? 'rgba(232,150,15,0.15)' : 'rgba(232,150,15,0.22)'}`,
+        padding: 14,
+        borderRadius: 18,
+        background: 'var(--accent-dim)',
+        border: '1px solid var(--border-accent)',
       }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: '#e8960f', width: '100%', marginBottom: 4 }}>ექსპორტი (ფილტრის მიხედვით)</span>
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--accent-bright)', width: '100%', marginBottom: 4 }}>ექსპორტი (ფილტრის მიხედვით)</span>
         {[
           { k: 'csv', t: '📄 CSV' },
           { k: 'xlsx', t: '📊 Excel' },
@@ -294,7 +293,7 @@ export default function ListPage({ user, theme }) {
 
       {/* LIST */}
       {loading ? (
-        <ListSkeleton isDark={isDark} />
+        <ListSkeleton />
       ) : loadError ? (
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
@@ -307,7 +306,7 @@ export default function ListPage({ user, theme }) {
             onClick={load}
             style={{
               padding: '10px 20px',
-              background: '#e8960f',
+              background: 'var(--accent-gradient)',
               color: '#000',
               border: 'none',
               borderRadius: 12,
@@ -332,22 +331,21 @@ export default function ListPage({ user, theme }) {
       ) : displayed.map((c, i) => {
         const isBulk = c.type === 'bulk'
         const date = new Date(c.created_at).toLocaleDateString('ka-GE')
-        const accentColor = isBulk ? '#2d6fe0' : '#2d9e5f'
+        const accentColor = isBulk ? 'var(--blue-bright)' : 'var(--green-bright)'
         const sell = displaySellingPrice(c.total_cost, settings)
         const showSell = (settings.markupPercent > 0 || settings.vatPercent > 0)
 
         return (
           <div key={c.id} onClick={() => setSelected(c)} style={{
-            background: isDark ? '#1e1e1e' : '#ffffff',
-            borderRadius: 18,
-            boxShadow: isDark
-              ? '0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04)'
-              : '0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
-            padding: '14px 16px',
-            marginBottom: 10, cursor: 'pointer',
+            background: 'var(--surface-shine)',
+            borderRadius: 22,
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-card)',
+            padding: '16px 18px',
+            marginBottom: 12, cursor: 'pointer',
             position: 'relative', overflow: 'hidden',
             animation: `fadeUp 0.3s ease ${i * 0.04}s both`,
-            transition: 'transform 0.15s',
+            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
           }}>
             <div style={{
               position: 'absolute', left: 0, top: 0, bottom: 0,
@@ -378,13 +376,17 @@ export default function ListPage({ user, theme }) {
               </div>
               <div style={{ fontSize: 12, color: isDark ? '#5e5045' : '#b0a090', marginBottom: 8 }}>
                 {c.category}
-                {isBulk && c.servings ? ` · ${c.servings} ულუფა` : ''}
-                {c.yield_amount ? ` · ${c.yield_amount}${c.yield_unit}` : ''}
+                {isBulk && c.servings ? (
+                  <> · <span style={{ color: 'var(--qty-red)', fontWeight: 800 }}>{c.servings} ულუფა</span></>
+                ) : ''}
+                {c.yield_amount ? (
+                  <> · <span style={{ color: 'var(--qty-red)', fontWeight: 800 }}>{c.yield_amount}{c.yield_unit}</span></>
+                ) : ''}
                 {c.created_by ? ` · ${c.created_by}` : ''}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 6 }}>
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#e8960f', letterSpacing: '-0.02em' }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--accent-bright)', letterSpacing: '-0.02em' }}>
                     {formatMoney(c.total_cost, settings)}
                   </div>
                   {showSell && (

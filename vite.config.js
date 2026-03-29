@@ -3,6 +3,19 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // ლოკალური გაშვება: npm run dev → http://localhost:5173
+  server: {
+    host: 'localhost',
+    port: 5173,
+    strictPort: false,
+    open: true,
+  },
+  preview: {
+    host: 'localhost',
+    port: 4173,
+    strictPort: false,
+    open: true,
+  },
   plugins: [
     react(),
     VitePWA({
@@ -14,8 +27,8 @@ export default defineConfig({
         name: 'სამზარეულო კალკულაცია — ტიფლისი',
         short_name: 'ტიფლისი',
         description: 'კერძების ღირებულების კალკულაცია',
-        theme_color: '#0f0f0f',
-        background_color: '#f8f6f2',
+        theme_color: '#2a9a94',
+        background_color: '#ebe4d9',
         display: 'standalone',
         orientation: 'portrait',
         lang: 'ka',

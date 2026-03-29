@@ -5,55 +5,131 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ——— ლუქს თემა: თბილი კრემი + ფირუზა (#48D1CC) ——— */
 :root {
-  --bg: #f8f6f2;
-  --bg2: #f0ede7;
-  --surface: #ffffff;
-  --surface2: #f8f6f2;
-  --border: #ede8e0;
-  --border2: #e0d8cc;
-  --accent: #e8960f;
-  --accent2: #d4840a;
-  --accent-dim: rgba(232,150,15,0.10);
-  --text: #1a1410;
-  --text2: #7a6a55;
-  --text3: #b0a090;
-  --green: #2d9e5f;
-  --green-dim: rgba(45,158,95,0.10);
-  --blue: #2d6fe0;
-  --blue-dim: rgba(45,111,224,0.10);
-  --red: #dc4444;
-  --red-dim: rgba(220,68,68,0.10);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-xs: 7px;
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+  --qty-red: #b71c1c;
+  --qty-red-muted: rgba(183, 28, 28, 0.1);
+
+  --bg: #ebe4d9;
+  --bg2: #e2d8ca;
+  --bg-mesh:
+    radial-gradient(ellipse 140% 90% at 50% -30%, rgba(72, 209, 204, 0.16), transparent 52%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(45, 111, 224, 0.06), transparent 45%);
+
+  --surface: #fffef9;
+  --surface2: #f7f1e8;
+  --surface-shine: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 241, 232, 0.98) 100%);
+
+  --border: rgba(44, 36, 28, 0.1);
+  --border2: rgba(44, 36, 28, 0.16);
+  --border-card: rgba(72, 209, 204, 0.2);
+  --border-accent: rgba(72, 209, 204, 0.38);
+
+  --accent: #2a9a94;
+  --accent-bright: #48d1cc;
+  --accent2: #1f7a75;
+  --accent-dim: rgba(72, 209, 204, 0.15);
+  --accent-glow: rgba(72, 209, 204, 0.28);
+
+  /* მთავარი ფირუზის გრადიენტი (#48D1CC) */
+  --accent-gradient: linear-gradient(135deg, #7ee8e4 0%, #48d1cc 48%, #2fb0ab 100%);
+
+  --text: #1c1612;
+  --text2: #5c4f42;
+  --text3: #8a7a68;
+  --text-muted: #7d6e5c;
+
+  --input-fill: rgba(255, 254, 249, 0.92);
+  --input-border: rgba(44, 36, 28, 0.12);
+
+  --green: #1f6b4a;
+  --green-bright: #2d8f63;
+  --green-dim: rgba(31, 107, 74, 0.12);
+
+  --blue: #3a5f73;
+  --blue-bright: #4a7a94;
+  --blue-dim: rgba(58, 95, 115, 0.12);
+
+  --red: #b91c1c;
+  --red-dim: rgba(185, 28, 28, 0.1);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+
+  --shadow-sm: 0 1px 2px rgba(28, 22, 18, 0.04), 0 2px 8px rgba(28, 22, 18, 0.06);
+  --shadow: 0 4px 20px rgba(28, 22, 18, 0.08), 0 0 0 1px rgba(72, 209, 204, 0.1);
+  --shadow-lg: 0 12px 40px rgba(28, 22, 18, 0.1), 0 0 0 1px rgba(72, 209, 204, 0.12);
+  --shadow-card: 0 8px 32px rgba(28, 22, 18, 0.07), 0 0 0 1px rgba(72, 209, 204, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+  --header-shine: linear-gradient(180deg, rgba(255, 254, 249, 0.98) 0%, rgba(247, 241, 232, 0.96) 100%);
+  --nav-blur: rgba(255, 254, 249, 0.82);
 }
 
 [data-theme="dark"] {
-  --bg: #111111;
-  --bg2: #161616;
-  --surface: #1e1e1e;
-  --surface2: #242424;
-  --border: #2a2a2a;
-  --border2: #333333;
-  --text: #f2ede6;
-  --text2: #9e9080;
-  --text3: #5e5045;
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
-  --shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  --qty-red: #ff9e8e;
+  --qty-red-muted: rgba(255, 158, 142, 0.12);
+
+  --bg: #0a0908;
+  --bg2: #0f0e0c;
+  --bg-mesh:
+    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(72, 209, 204, 0.11), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(90, 120, 140, 0.06), transparent 50%);
+
+  --surface: #141210;
+  --surface2: #1c1916;
+  --surface-shine: linear-gradient(165deg, #1a1714 0%, #141210 100%);
+
+  --border: rgba(255, 248, 235, 0.06);
+  --border2: rgba(255, 248, 235, 0.1);
+  --border-card: rgba(72, 209, 204, 0.14);
+  --border-accent: rgba(72, 209, 204, 0.28);
+
+  --accent: #5fd9d3;
+  --accent-bright: #6ef2eb;
+  --accent2: #48d1cc;
+  --accent-dim: rgba(72, 209, 204, 0.14);
+  --accent-glow: rgba(72, 209, 204, 0.32);
+
+  --text: #f5f0e8;
+  --text2: #b8a995;
+  --text3: #7a6e5e;
+  --text-muted: #9a8b78;
+
+  --input-fill: rgba(22, 20, 18, 0.85);
+  --input-border: rgba(72, 209, 204, 0.15);
+
+  --green: #3d9b6e;
+  --green-bright: #4dbd84;
+  --green-dim: rgba(61, 155, 110, 0.14);
+
+  --blue: #6a9eb5;
+  --blue-bright: #8ab8cc;
+  --blue-dim: rgba(106, 158, 181, 0.14);
+
+  --red: #f87171;
+  --red-dim: rgba(248, 113, 113, 0.12);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(72, 209, 204, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --header-shine: linear-gradient(180deg, #1a1714 0%, #141210 100%);
+  --accent-gradient: linear-gradient(135deg, #6ef2eb 0%, #48d1cc 45%, #3aa9a4 100%);
+  --nav-blur: rgba(20, 18, 16, 0.88);
 }
 
 html, body {
   height: 100%;
   background: var(--bg);
+  background-image: var(--bg-mesh);
+  background-attachment: fixed;
   color: var(--text);
-  font-family: 'Noto Sans Georgian', -apple-system, sans-serif;
+  font-family: 'Noto Sans Georgian', 'Georgia', serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -68,12 +144,15 @@ input, select, textarea, button {
   font-family: inherit;
 }
 
-::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-accent);
+  border-radius: 4px;
+}
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -94,4 +173,9 @@ input, select, textarea, button {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
+}
+
+@keyframes luxShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }

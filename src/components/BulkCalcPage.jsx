@@ -4,6 +4,7 @@ import { logAudit } from '../lib/auditLog'
 import IngredientTable from './IngredientTable'
 import BulkFabLogo from './BulkFabLogo'
 import { showToast } from './Toast'
+import { lux } from '../theme/luxury'
 
 const UNITS = ['კგ', 'გ', 'ც', 'მლ', 'ლ']
 
@@ -40,34 +41,18 @@ export default function BulkCalcPage({ user, theme }) {
       .then(({ data }) => setCategories(data || []))
   }, [])
 
-  const inp = {
-    padding: '12px 14px',
-    background: isDark ? '#242424' : '#f8f6f2',
-    border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-    borderRadius: 10,
-    color: isDark ? '#f2ede6' : '#1a1410',
-    fontSize: 13, outline: 'none', width: '100%',
-    fontFamily: "'Noto Sans Georgian', sans-serif",
-    transition: 'border-color 0.2s',
-  }
+  const inp = { ...lux.inp }
 
-  const card = {
-    background: isDark ? '#1e1e1e' : '#ffffff',
-    borderRadius: 20,
-    boxShadow: isDark
-      ? '0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04)'
-      : '0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
-    padding: '18px',
-    marginBottom: 14,
-  }
+  const card = { ...lux.card }
 
-  const lbl = {
-    fontSize: 11, fontWeight: 700,
-    color: isDark ? '#5e5045' : '#b0a090',
-    marginBottom: 6,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    display: 'block',
+  const lbl = { ...lux.lbl }
+
+  const qtyInp = {
+    ...inp,
+    color: 'var(--qty-red)',
+    fontWeight: 800,
+    background: isDark ? 'rgba(255,138,128,0.06)' : 'var(--qty-red-muted)',
+    borderColor: isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)',
   }
 
   const clear = () => {
@@ -112,9 +97,10 @@ export default function BulkCalcPage({ user, theme }) {
       <div style={card}>
         <div style={{
           fontSize: 13, fontWeight: 800,
-          color: '#e8960f', marginBottom: 16,
+          color: 'var(--accent-bright)', marginBottom: 18,
           display: 'flex', alignItems: 'center', gap: 10,
-          letterSpacing: '-0.01em',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
         }}>
           <BulkFabLogo size={36} />
           <span>ნახევრადფაბრიკატი</span>
@@ -124,8 +110,8 @@ export default function BulkCalcPage({ user, theme }) {
           <label style={lbl}>სახელი *</label>
           <input style={inp} value={name} onChange={e => setName(e.target.value)}
             placeholder="მაგ: ქათმის ბულიონი"
-            onFocus={e => e.target.style.borderColor = '#e8960f'}
-            onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+            onFocus={e => { e.target.style.borderColor = 'var(--accent-bright)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)' }}
+            onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = 'none' }}
           />
         </div>
 
@@ -138,12 +124,8 @@ export default function BulkCalcPage({ user, theme }) {
             </select>
           </div>
           <div>
-            <label style={lbl}>ულუფების რაოდ.</label>
-            <input style={{
-              ...inp,
-              color: servings ? '#e8960f' : (isDark ? '#f2ede6' : '#1a1410'),
-              fontWeight: servings ? 700 : 400,
-            }}
+            <label style={{ ...lbl, color: 'var(--qty-red)' }}>ულუფების რაოდ.</label>
+            <input style={qtyInp}
               type="number" min="1" value={servings}
               onChange={e => {
                 setServings(e.target.value)
@@ -152,17 +134,17 @@ export default function BulkCalcPage({ user, theme }) {
                 if (sv > 0 && ya > 0) setPortionWeight((ya / sv).toFixed(3))
               }}
               placeholder="ავტომატური"
-              onFocus={e => e.target.style.borderColor = '#e8960f'}
-              onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+              onFocus={e => { e.target.style.borderColor = '#dc4444' }}
+              onBlur={e => { e.target.style.borderColor = isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)' }}
             />
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div>
-            <label style={lbl}>გამოსავლიანობა</label>
+            <label style={{ ...lbl, color: 'var(--qty-red)' }}>გამოსავლიანობა</label>
             <div style={{ display: 'flex', gap: 6 }}>
-              <input style={{ ...inp }} type="number" min="0" step="0.001"
+              <input style={qtyInp} type="number" min="0" step="0.001"
                 value={yieldAmt}
                 onChange={e => {
                   setYieldAmt(e.target.value)
@@ -173,8 +155,8 @@ export default function BulkCalcPage({ user, theme }) {
                   else if (ya > 0 && sv > 0) setPortionWeight((ya / sv).toFixed(3))
                 }}
                 placeholder="0.000"
-                onFocus={e => e.target.style.borderColor = '#e8960f'}
-                onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+                onFocus={e => { e.target.style.borderColor = '#dc4444' }}
+                onBlur={e => { e.target.style.borderColor = isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)' }}
               />
               <select style={{ ...inp, width: 64, flexShrink: 0 }}
                 value={yieldUnit} onChange={e => setYieldUnit(e.target.value)}>
@@ -183,12 +165,8 @@ export default function BulkCalcPage({ user, theme }) {
             </div>
           </div>
           <div>
-            <label style={lbl}>1 ულუფის წონა</label>
-            <input style={{
-              ...inp,
-              color: portionWeight ? '#e8960f' : (isDark ? '#f2ede6' : '#1a1410'),
-              fontWeight: portionWeight ? 700 : 400,
-            }}
+            <label style={{ ...lbl, color: 'var(--qty-red)' }}>1 ულუფის წონა</label>
+            <input style={qtyInp}
               type="number" min="0" step="0.001"
               value={portionWeight}
               onChange={e => {
@@ -198,8 +176,8 @@ export default function BulkCalcPage({ user, theme }) {
                 if (pw > 0 && ya > 0) setServings(String(Math.round(ya / pw)))
               }}
               placeholder="0.000"
-              onFocus={e => e.target.style.borderColor = '#e8960f'}
-              onBlur={e => e.target.style.borderColor = isDark ? '#2a2a2a' : '#ede8e0'}
+              onFocus={e => { e.target.style.borderColor = '#dc4444' }}
+              onBlur={e => { e.target.style.borderColor = isDark ? 'rgba(255,138,128,0.22)' : 'rgba(198,40,40,0.2)' }}
             />
           </div>
         </div>
@@ -211,67 +189,74 @@ export default function BulkCalcPage({ user, theme }) {
           color: isDark ? '#f2ede6' : '#1a1410',
           marginBottom: 14, letterSpacing: '-0.01em',
         }}>
-          🥩 ინგრედიენტები <span style={{ fontSize: 11, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 500 }}>კგ-ში</span>
+          🥩 ინგრედიენტები <span style={{ fontSize: 11, color: 'var(--qty-red)', fontWeight: 800 }}>კგ-ში</span>
         </div>
         <IngredientTable ingredients={ingredients} onChange={setIngredients} theme={theme} user={user} />
       </div>
 
       {/* SUMMARY */}
       <div style={{
-        background: isDark
-          ? 'linear-gradient(135deg, #1e1a14 0%, #1e1e1e 100%)'
-          : 'linear-gradient(135deg, #fff8ee 0%, #ffffff 100%)',
-        borderRadius: 20,
-        border: `1.5px solid ${isDark ? 'rgba(232,150,15,0.2)' : 'rgba(232,150,15,0.25)'}`,
-        padding: '16px 18px',
-        marginBottom: 14,
+        background: 'var(--surface-shine)',
+        borderRadius: 22,
+        border: '1px solid var(--border-accent)',
+        boxShadow: 'var(--shadow-card)',
+        padding: '18px 18px',
+        marginBottom: 16,
       }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div style={{
-            background: isDark ? 'rgba(232,150,15,0.08)' : 'rgba(232,150,15,0.06)',
-            borderRadius: 12, padding: '12px',
+            background: 'var(--accent-dim)',
+            borderRadius: 14, padding: '14px',
             textAlign: 'center',
+            border: '1px solid var(--border-card)',
           }}>
-            <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ჯამი</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#e8960f' }}>₾ {total.toFixed(2)}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.12em' }}>ჯამი</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-bright)', letterSpacing: '-0.02em' }}>₾ {total.toFixed(2)}</div>
           </div>
           <div style={{
-            background: isDark ? 'rgba(232,150,15,0.08)' : 'rgba(232,150,15,0.06)',
-            borderRadius: 12, padding: '12px',
+            background: 'var(--accent-dim)',
+            borderRadius: 14, padding: '14px',
             textAlign: 'center',
+            border: '1px solid var(--border-card)',
           }}>
-            <div style={{ fontSize: 10, color: isDark ? '#5e5045' : '#b0a090', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>1 ულუფა</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#e8960f' }}>₾ {perServing.toFixed(2)}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.12em' }}>1 ულუფა</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-bright)', letterSpacing: '-0.02em' }}>₾ {perServing.toFixed(2)}</div>
           </div>
         </div>
         {yld > 0 && (
-          <div style={{ textAlign: 'center', fontSize: 12, color: isDark ? '#9e9080' : '#7a6a55' }}>
-            1 {yieldUnit}-ს ღირებულება: <span style={{ fontWeight: 700, color: '#e8960f' }}>₾ {perUnit.toFixed(4)}</span>
+          <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text2)' }}>
+            1 {yieldUnit}-ს ღირებულება:{' '}
+            <span style={{ fontWeight: 800, color: 'var(--accent-bright)' }}>₾ {perUnit.toFixed(4)}</span>
           </div>
         )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
-        <button onClick={clear} style={{
-          padding: '14px',
-          background: isDark ? '#242424' : '#f8f6f2',
-          color: isDark ? '#9e9080' : '#7a6a55',
-          border: `1.5px solid ${isDark ? '#2a2a2a' : '#ede8e0'}`,
-          borderRadius: 14, fontSize: 13, fontWeight: 700,
+        <button type="button" onClick={clear} style={{
+          padding: '15px',
+          background: 'var(--surface2)',
+          color: 'var(--text2)',
+          border: '1px solid var(--border-card)',
+          borderRadius: 14, fontSize: 12, fontWeight: 700,
           cursor: 'pointer',
           fontFamily: "'Noto Sans Georgian', sans-serif",
+          letterSpacing: '0.04em',
         }}>
           🗑️ გასუფთავება
         </button>
-        <button onClick={save} disabled={loading} style={{
-          padding: '14px',
-          background: '#e8960f', color: '#000',
-          border: 'none', borderRadius: 14,
-          fontSize: 14, fontWeight: 800,
-          cursor: 'pointer',
+        <button type="button" onClick={save} disabled={loading} style={{
+          padding: '15px',
+          background: 'var(--accent-gradient)',
+          color: '#1a1410',
+          border: '1px solid var(--border-accent)',
+          borderRadius: 14,
+          fontSize: 13, fontWeight: 800,
+          cursor: loading ? 'wait' : 'pointer',
           fontFamily: "'Noto Sans Georgian', sans-serif",
-          letterSpacing: '-0.01em',
-          boxShadow: '0 4px 16px rgba(232,150,15,0.35)',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          boxShadow: '0 6px 24px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.4)',
+          opacity: loading ? 0.85 : 1,
         }}>
           {loading ? '...' : '💾 შენახვა'}
         </button>
